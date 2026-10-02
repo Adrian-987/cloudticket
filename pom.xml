@@ -19,7 +19,31 @@
 
     <properties>
         <java.version>21</java.version>
+        <mybatis-plus.version>3.5.12</mybatis-plus.version>
+        <knife4j.version>4.5.0</knife4j.version>
+        <hutool.version>5.8.38</hutool.version>
     </properties>
+
+    <!-- 第三方依赖版本统一在父 pom 管理，子模块引用时不写版本号 -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+                <version>${mybatis-plus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.xiaoymin</groupId>
+                <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
+                <version>${knife4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-all</artifactId>
+                <version>${hutool.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <modules>
         <module>cloudticket-common</module>
