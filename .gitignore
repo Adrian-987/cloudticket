@@ -1,0 +1,21 @@
+# ---- IDE ----
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# ---- 构建产物 ----
+target/
+*.class
+
+# ---- 本地工具配置 ----
+.zcodeignore
+
+# ---- 系统/其他 ----
+.DS_Store
+Thumbs.db
+*.log
+HELP.md
+
+# ---- 密钥类配置（以后敏感信息放这个文件，永不进 git）----
+**/application-local.yml
