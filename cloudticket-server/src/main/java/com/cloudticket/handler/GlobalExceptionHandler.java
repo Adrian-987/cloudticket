@@ -27,6 +27,7 @@ public class GlobalExceptionHandler {
         return Result.error(ex.getMessage());
     }
 
+    //用于接收dto的参数错误错误抛出异常,不进入controller
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Result<Void> validExceptionHandler(MethodArgumentNotValidException ex) {
