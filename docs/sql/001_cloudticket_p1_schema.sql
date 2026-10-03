@@ -43,7 +43,8 @@ CREATE TABLE `merchant` (
     `name`          VARCHAR(100) NOT NULL                COMMENT '主办方/公司名称',
     `license_no`    VARCHAR(50)  NOT NULL                COMMENT '统一社会信用代码',
     `contact_name`  VARCHAR(50)  NULL                    COMMENT '联系人',
-    `contact_phone` VARCHAR(20)  NULL                    COMMENT '联系电话',
+    `contact_phone` VARCHAR(20)  NOT NULL                COMMENT '联系电话（登录名）',
+    `password_hash` VARCHAR(100) NOT NULL                COMMENT '密码摘要（BCrypt）',
     `status`        TINYINT      NOT NULL DEFAULT 0      COMMENT '状态：0待审核 1正常 2禁用 [落位:入驻审核状态机]',
     `audit_remark`  VARCHAR(255) NULL                    COMMENT '审核备注（驳回原因）',
     `create_time`   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -51,7 +52,8 @@ CREATE TABLE `merchant` (
     `update_time`   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     `update_user`   BIGINT       NULL,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_license_no` (`license_no`)
+    UNIQUE KEY `uk_license_no` (`license_no`),
+    UNIQUE KEY `uk_contact_phone` (`contact_phone`)
 ) ENGINE = InnoDB COMMENT ='主办方表';
 
 -- ----------------------------------------------------------------------------
@@ -86,7 +88,7 @@ CREATE TABLE `venue` (
     `update_time` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     `update_user` BIGINT       NULL,
     PRIMARY KEY (`id`),
-    KEY `idx_city` (`city`)
+    UNIQUE KEY `uk_city_name` (`city`, `name`)
 ) ENGINE = InnoDB COMMENT ='场馆表';
 
 -- ----------------------------------------------------------------------------
@@ -208,33 +210,37 @@ CREATE TABLE `orders` (
 ) ENGINE = InnoDB COMMENT ='订单表';
 
 -- ----------------------------------------------------------------------------
--- 10. 订单明细表
+-- 10. 订单票位明细表（一行 = 一个票位：谁 + 哪档 + 多少钱）
 -- ----------------------------------------------------------------------------
 CREATE TABLE `order_item` (
-    `id`          BIGINT        NOT NULL AUTO_INCREMENT COMMENT '主键',
-    `order_id`    BIGINT        NOT NULL                COMMENT '订单 id',
-    `category_id` BIGINT        NOT NULL                COMMENT '票档 id',
-    `quantity`    INT           NOT NULL DEFAULT 1      COMMENT '数量',
-    `unit_price`  DECIMAL(10, 2) NOT NULL               COMMENT '成交单价',
-    `create_time` DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `create_user` BIGINT        NULL,
-    `update_time` DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    `update_user` BIGINT        NULL,
+    `id`            BIGINT        NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `order_id`      BIGINT        NOT NULL                COMMENT '订单 id',
+    `category_id`   BIGINT        NOT NULL                COMMENT '票档 id',
+    `unit_price`    DECIMAL(10, 2) NOT NULL               COMMENT '成交单价（快照）',
+    `attendee_name` VARCHAR(50)   NOT NULL                COMMENT '观演人姓名快照（下单时固化）',
+    `id_card_no`    VARCHAR(32)   NOT NULL                COMMENT '证件号快照 [落位:实名判重，覆盖待支付占用]',
+    `create_time`   DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `create_user`   BIGINT        NULL,
+    `update_time`   DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `update_user`   BIGINT        NULL,
     PRIMARY KEY (`id`),
-    KEY `idx_order` (`order_id`)
-) ENGINE = InnoDB COMMENT ='订单明细表';
+    KEY `idx_order` (`order_id`),
+    KEY `idx_idcard` (`id_card_no`)
+) ENGINE = InnoDB COMMENT ='订单票位明细表（一行=一张票位）';
 
 -- ----------------------------------------------------------------------------
 -- 11. 票表（一票一码）
 -- ----------------------------------------------------------------------------
 CREATE TABLE `ticket` (
-    `id`          BIGINT      NOT NULL AUTO_INCREMENT COMMENT '主键',
-    `ticket_no`   VARCHAR(32) NOT NULL                COMMENT '票号（核销凭证，唯一）',
-    `order_id`    BIGINT      NOT NULL                COMMENT '订单 id',
-    `user_id`     BIGINT      NOT NULL                COMMENT '持有人',
-    `session_id`  BIGINT      NOT NULL                COMMENT '场次 id',
-    `category_id` BIGINT      NOT NULL                COMMENT '票档 id',
-    `status`      TINYINT     NOT NULL DEFAULT 1      COMMENT '状态：1有效 2已核销 3已退款 4已作废 [落位:核销CAS幂等]',
+    `id`            BIGINT      NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `ticket_no`     VARCHAR(32) NOT NULL                COMMENT '票号（核销凭证，唯一）',
+    `order_id`      BIGINT      NOT NULL                COMMENT '订单 id',
+    `user_id`       BIGINT      NOT NULL                COMMENT '持有人（下单账号，票夹归属）',
+    `session_id`    BIGINT      NOT NULL                COMMENT '场次 id',
+    `category_id`   BIGINT      NOT NULL                COMMENT '票档 id',
+    `attendee_name` VARCHAR(50) NOT NULL                COMMENT '观演人姓名快照（出票时从票位复制）',
+    `id_card_no`    VARCHAR(32) NOT NULL                COMMENT '证件号快照 [落位:人证合一核验]',
+    `status`        TINYINT     NOT NULL DEFAULT 1      COMMENT '状态：1有效 2已核销 3已退款 4已作废 [落位:核销CAS幂等]',
     `check_time`  DATETIME    NULL                    COMMENT '核销时间',
     `create_time` DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `create_user` BIGINT      NULL,
