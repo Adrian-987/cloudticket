@@ -10,6 +10,7 @@ target/
 
 # ---- 本地工具配置 ----
 .zcodeignore
+.mimosa/
 
 # ---- 系统/其他 ----
 .DS_Store

@@ -18,13 +18,16 @@
 | 文档与工具 | Knife4j · EasyExcel · JMeter · Docker Compose |
 | 支付 | 支付宝沙箱（RSA2 验签 + 异步回调 + 退款） |
 
-## 模块结构
+## 仓库结构（Monorepo）
 
 ```
-cloudticket（父 pom，统一版本管理）
-├── cloudticket-common   通用工具 / 统一返回 / 异常基类 / 请求上下文
-├── cloudticket-pojo     Entity / DTO / VO
-└── cloudticket-server   启动类 · Controller · Service · Mapper · 配置
+cloudticket
+├── backend/                 后端 · Maven 聚合工程
+│   ├── cloudticket-common   通用工具 / 统一返回 / 异常基类 / 请求上下文
+│   ├── cloudticket-pojo     Entity / DTO / VO
+│   └── cloudticket-server   启动类 · Controller · Service · Mapper · 配置
+├── frontend/                前端（web-user / web-admin，随 P1 接入）
+└── docs/                    项目文档（大纲 / SQL / 接口契约）
 ```
 
 ## 快速开始
@@ -34,7 +37,8 @@ cloudticket（父 pom，统一版本管理）
 # 1. 初始化数据库
 mysql -uroot -p < docs/sql/001_cloudticket_p1_schema.sql
 # 2. 配置连接（后续提供 application-local.yml 模板）
-# 3. 构建并启动
+# 3. 构建并启动（在 backend/ 下执行）
+cd backend
 mvn clean install -DskipTests
 cd cloudticket-server && mvn spring-boot:run
 # 4. 接口文档：http://localhost:8080/doc.html
@@ -44,7 +48,7 @@ cd cloudticket-server && mvn spring-boot:run
 
 | 文档 | 说明 |
 |---|---|
-| [票务系统项目大纲.md](./票务系统项目大纲.md) | 产品需求 + 技术方案 + 六期迭代路线（项目宪法） |
+| [票务系统项目大纲.md](./docs/票务系统项目大纲.md) | 产品需求 + 技术方案 + 六期迭代路线（项目宪法） |
 | [docs/sql/](./docs/sql/) | 建表 SQL（按期分文件） |
 | [docs/api/](./docs/api/) | apifox 导出的接口文档 |
 
