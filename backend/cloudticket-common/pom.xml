@@ -20,6 +20,21 @@
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
+        <!-- cloudticket-common 的 pom.xml，版本从父 pom dependencyManagement 拿，不写 version -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>              <!-- compile（默认）：JwtUtil 编译期要用 Jwts/Keys/Claims -->
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <scope>runtime</scope>                          <!-- 实现类，运行时才加载 -->
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <scope>runtime</scope>                          <!-- claims 的 JSON 序列化，运行时才加载 -->
+        </dependency>
     </dependencies>
 
 </project>

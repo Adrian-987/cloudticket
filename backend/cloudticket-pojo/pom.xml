@@ -12,13 +12,18 @@
 
     <artifactId>cloudticket-pojo</artifactId>
     <name>cloudticket-pojo</name>
-    <description>实体/DTO/VO（只依赖 Lombok）</description>
+    <description>实体/DTO/VO（依赖 Lombok 与 MP 注解）</description>
 
     <dependencies>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
+        </dependency>
+        <!-- 仅 MP 注解（@TableName/@TableId/@TableField/@Version），供实体使用 -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-annotation</artifactId>
         </dependency>
     </dependencies>
 

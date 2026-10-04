@@ -11,6 +11,8 @@ target/
 # ---- 本地工具配置 ----
 .zcodeignore
 .mimosa/
+# ZCode 助手协作约束（仅本地生效，不入库）
+AGENTS.md
 
 # ---- 系统/其他 ----
 .DS_Store
