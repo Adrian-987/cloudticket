@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: cloudticket-server
+  profiles:
+    active: local
+  datasource:
+    druid:
+      # 从池中获取连接最多等10秒，超时后抛异常并由全局异常处理器返回错误，
+      # 避免数据库不可用时前端请求无限挂起
+      max-wait: 10000
+      driver-class-name: ${sky.datasource.driver-class-name}
+      url: jdbc:mysql://${sky.datasource.host}:${sky.datasource.port}/${sky.datasource.database}?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+      username: ${sky.datasource.username}
+      password: ${sky.datasource.password}
+
+server:
+  port: 8080
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl   # 开发期打印 SQL，压测前关闭
+  global-config:
+    banner: false
+
+knife4j:
+  enable: true
