@@ -51,7 +51,13 @@ public class JwtAuthInterceptor implements HandlerInterceptor {
             return false;
         }
         // 4. 身份写入 ThreadLocal
-        BaseContext.setCurrentId(((Number) claims.get(claimKey)).longValue());
+        //校验token中是否存在userid字段,没有则错误
+        Object object=claims.get(claimKey);
+        if(!(object instanceof Number number)){
+            write401(response,"请先登录");
+            return false;
+        }
+        BaseContext.setCurrentId(number.longValue());
         // 5. 放行
         return true;
     }

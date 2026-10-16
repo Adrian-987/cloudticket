@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 //类用于储存jwt的私密信息,通过内部类分类储存,并注入ioc容器
 @Data
 @Component
+//读取yml文件,对应字段注入内部类
 @ConfigurationProperties(prefix = "cloudticket.jwt")
 public class JwtProperties {
 

@@ -6,11 +6,14 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+//实现这个接口,重写部分mvc的配置,主要是拦截器配置和跨域访问权限
+//拦截器的配置一定在webmvcConfig
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
     private final JwtProperties jwtProperties;
 
+    //使用其他bean对象,使用构造器注入
     public WebMvcConfig(JwtProperties jwtProperties) {
         this.jwtProperties = jwtProperties;
     }
