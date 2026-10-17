@@ -22,7 +22,7 @@ mybatis-plus:
     banner: false
 
 knife4j:
-  enable: true
+  enable: false
 
 cloudticket:
   jwt:

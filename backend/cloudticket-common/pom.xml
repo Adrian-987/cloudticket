@@ -35,6 +35,12 @@
             <artifactId>jjwt-jackson</artifactId>
             <scope>runtime</scope>                          <!-- claims 的 JSON 序列化，运行时才加载 -->
         </dependency>
+        <!-- 加密工具（BCrypt 等） -->
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+        </dependency>
+
     </dependencies>
 
 </project>

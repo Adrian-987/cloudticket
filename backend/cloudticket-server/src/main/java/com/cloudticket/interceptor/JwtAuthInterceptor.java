@@ -47,7 +47,7 @@ public class JwtAuthInterceptor implements HandlerInterceptor {
             write401(response, "登录已过期，请重新登录");
             return false;
         } catch (JwtException e) {//信息错误
-            write401(response, "请先登录");
+            write401(response, "登录信息错误,请重新登录");
             return false;
         }
         // 4. 身份写入 ThreadLocal

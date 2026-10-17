@@ -18,6 +18,7 @@
     <description>云票 CloudTicket 票务预订平台</description>
 
     <properties>
+        <springdoc.version>2.8.16</springdoc.version>
         <java.version>21</java.version>
         <mybatis-plus.version>3.5.12</mybatis-plus.version>
         <knife4j.version>4.5.0</knife4j.version>
@@ -28,6 +29,11 @@
     <!-- 第三方依赖版本统一在父 pom 管理，子模块引用时不写版本号 -->
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>${springdoc.version}</version>
+            </dependency>
             <dependency>
                 <groupId>io.jsonwebtoken</groupId>
                 <artifactId>jjwt-api</artifactId>
