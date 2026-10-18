@@ -11,6 +11,8 @@ target/
 # ---- 本地工具配置 ----
 .zcodeignore
 .mimosa/
+# 本地 AI 工作目录（记忆/复习笔记/开发计划，不进库）
+.workbuddy/
 # ZCode 助手协作约束（仅本地生效，不入库）
 AGENTS.md
 
