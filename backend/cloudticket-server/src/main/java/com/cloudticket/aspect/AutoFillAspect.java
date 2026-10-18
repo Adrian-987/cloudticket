@@ -2,7 +2,7 @@ package com.cloudticket.aspect;
 
 import com.cloudticket.annotation.AutoFill;
 import com.cloudticket.annotation.OperationType;
-import com.cloudticket.common.context.BaseContext;
+import com.cloudticket.common.constant.BaseConstant;
 import com.cloudticket.common.exception.BaseException;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
@@ -38,7 +38,7 @@ public class AutoFillAspect {
         }
         Object entity = args[0];
         LocalDateTime now = LocalDateTime.now();
-        Long currentId = BaseContext.getCurrentId();
+        Long currentId = BaseConstant.getCurrentId();
         OperationType operationType = ((MethodSignature) joinPoint.getSignature())
                 .getMethod().getAnnotation(AutoFill.class).value();
         try {

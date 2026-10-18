@@ -1,7 +1,7 @@
 package com.cloudticket.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.cloudticket.common.context.BaseContext;
+import com.cloudticket.common.constant.BaseConstant;
 import com.cloudticket.common.exception.BaseException;
 import com.cloudticket.common.util.JwtUtil;
 import com.cloudticket.common.util.PasswordUtil;
@@ -53,7 +53,7 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
 
     @Override
     public AdminInfoVO adminInfo() {
-        Long currentId = BaseContext.getCurrentId();
+        Long currentId = BaseConstant.getCurrentId();
         Admin admin = getById(currentId);
         if(admin==null){
             throw new BaseException("登录信息错误,请重新登录");
