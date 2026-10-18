@@ -20,10 +20,10 @@ public class PageResult<T> implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private Long total;      // 总记录数
+    private Integer total;   // 总记录数（用 Integer：JacksonConfig 会把 Long 序列化成字符串，分页契约要求 number）
     private List<T> rows;    // 当前页数据列表
 
     public static <T> PageResult<T> of(long total, List<T> rows) {
-        return PageResult.<T>builder().total(total).rows(rows).build();
+        return PageResult.<T>builder().total((int) total).rows(rows).build();
     }
 }

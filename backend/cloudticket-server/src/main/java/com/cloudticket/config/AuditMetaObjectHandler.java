@@ -1,7 +1,7 @@
 package com.cloudticket.config;
 
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
-import com.cloudticket.common.constant.BaseConstant;
+import com.cloudticket.common.context.BaseContext;
 import org.apache.ibatis.reflection.MetaObject;
 import org.springframework.stereotype.Component;
 
@@ -24,7 +24,7 @@ public class AuditMetaObjectHandler implements MetaObjectHandler {
     @Override
     public void insertFill(MetaObject metaObject) {
         LocalDateTime now = LocalDateTime.now();
-        Long userId = BaseConstant.getCurrentId();
+        Long userId = BaseContext.getCurrentId();
         this.strictInsertFill(metaObject, "createTime", LocalDateTime.class, now);
         this.strictInsertFill(metaObject, "createUser", Long.class, userId);
         this.strictInsertFill(metaObject, "updateTime", LocalDateTime.class, now);
@@ -34,6 +34,6 @@ public class AuditMetaObjectHandler implements MetaObjectHandler {
     @Override
     public void updateFill(MetaObject metaObject) {
         this.strictUpdateFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
-        this.strictUpdateFill(metaObject, "updateUser", Long.class, BaseConstant.getCurrentId());
+        this.strictUpdateFill(metaObject, "updateUser", Long.class, BaseContext.getCurrentId());
     }
 }

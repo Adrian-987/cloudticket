@@ -4,7 +4,7 @@ package com.cloudticket.service.impl;
 import cn.hutool.core.util.DesensitizedUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.cloudticket.common.constant.BaseConstant;
+import com.cloudticket.common.context.BaseContext;
 import com.cloudticket.common.exception.BaseException;
 import com.cloudticket.common.util.JwtUtil;
 import com.cloudticket.common.util.PasswordUtil;
@@ -96,7 +96,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public UserInfoVO userInfo() {
-        Long currentId = BaseConstant.getCurrentId();
+        Long currentId = BaseContext.getCurrentId();
         User user = getById(currentId);
         if(user==null){
             throw new BaseException("登录信息错误,请重新登录");

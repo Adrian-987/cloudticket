@@ -2,7 +2,7 @@ package com.cloudticket.interceptor;
 
 import cn.hutool.json.JSONUtil;
 import com.cloudticket.common.util.JwtUtil;
-import com.cloudticket.common.constant.BaseConstant;
+import com.cloudticket.common.context.BaseContext;
 import com.cloudticket.common.result.Result;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -57,7 +57,7 @@ public class JwtAuthInterceptor implements HandlerInterceptor {
             write401(response,"请先登录");
             return false;
         }
-        BaseConstant.setCurrentId(number.longValue());
+        BaseContext.setCurrentId(number.longValue());
         // 5. 放行
         return true;
     }
@@ -66,7 +66,7 @@ public class JwtAuthInterceptor implements HandlerInterceptor {
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response,
                                 Object handler, Exception ex) {
-        BaseConstant.removeCurrentId();
+        BaseContext.removeCurrentId();
     }
 
     //token错误给response添加状态码和错误提示信息(result形式)

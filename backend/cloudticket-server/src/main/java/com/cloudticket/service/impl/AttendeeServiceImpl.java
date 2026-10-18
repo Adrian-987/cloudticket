@@ -5,10 +5,10 @@ import cn.hutool.core.util.IdcardUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.cloudticket.common.constant.BaseConstant;
+import com.cloudticket.common.context.BaseContext;
 import com.cloudticket.common.exception.BaseException;
 import com.cloudticket.mapper.AttendeeMapper;
-import com.cloudticket.pojo.context.UserContext;
+import com.cloudticket.pojo.constant.UserConstant;
 import com.cloudticket.pojo.dto.AttendeeSaveDTO;
 import com.cloudticket.pojo.entity.Attendee;
 import com.cloudticket.pojo.vo.AttendeeVO;
@@ -24,7 +24,7 @@ import java.util.List;
 public class AttendeeServiceImpl extends ServiceImpl<AttendeeMapper, Attendee>implements AttendeeService {
     @Override
     public Long attendeeSave(AttendeeSaveDTO attendeeSaveDTO) {
-        Long userId= BaseConstant.getCurrentId();
+        Long userId= BaseContext.getCurrentId();
         //校验身份证是否正确
         boolean ok = IdcardUtil.isValidCard(attendeeSaveDTO.getIdCardNo());
         if(!ok){
@@ -38,7 +38,7 @@ public class AttendeeServiceImpl extends ServiceImpl<AttendeeMapper, Attendee>im
         }
         //2.该同户的保存的信息数量
         Long count = lambdaQuery().eq(Attendee::getUserId, userId).count();
-        if(count>= UserContext.ATTENDEE_COUNT_MAX){
+        if(count>= UserConstant.ATTENDEE_COUNT_MAX){
             throw new BaseException("您保存的观演人信息数量达到上限");
         }
         //3.加库返回
@@ -55,7 +55,7 @@ public class AttendeeServiceImpl extends ServiceImpl<AttendeeMapper, Attendee>im
 
     @Override
     public void attendeeDelete(Long id) {
-        Long userId= BaseConstant.getCurrentId();
+        Long userId= BaseContext.getCurrentId();
         LambdaQueryWrapper<Attendee> wrapper = Wrappers.<Attendee>lambdaQuery()
                 .eq(Attendee::getUserId, userId)
                 .eq(Attendee::getId, id);
@@ -67,7 +67,7 @@ public class AttendeeServiceImpl extends ServiceImpl<AttendeeMapper, Attendee>im
 
     @Override
     public void attendeeUpdate(Long id, AttendeeSaveDTO attendeeSaveDTO) {
-        Long userId= BaseConstant.getCurrentId();
+        Long userId= BaseContext.getCurrentId();
         String idCardNo = attendeeSaveDTO.getIdCardNo();
         boolean ok = IdcardUtil.isValidCard(idCardNo);
         if(!ok){
@@ -99,7 +99,7 @@ public class AttendeeServiceImpl extends ServiceImpl<AttendeeMapper, Attendee>im
     @Override
     public List<AttendeeVO> attendeeList() {
         LambdaQueryWrapper<Attendee> wrapper=Wrappers.<Attendee>lambdaQuery()
-                .eq(Attendee::getUserId, BaseConstant.getCurrentId())
+                .eq(Attendee::getUserId, BaseContext.getCurrentId())
                 .orderByDesc(Attendee::getId);
         List<Attendee> list = list(wrapper);
         List<AttendeeVO> voList=new ArrayList<>();
