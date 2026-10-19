@@ -45,7 +45,7 @@ CREATE TABLE `merchant` (
     `contact_name`  VARCHAR(50)  NULL                    COMMENT '联系人',
     `contact_phone` VARCHAR(20)  NOT NULL                COMMENT '联系电话（登录名）',
     `password_hash` VARCHAR(100) NOT NULL                COMMENT '密码摘要（BCrypt）',
-    `status`        TINYINT      NOT NULL DEFAULT 0      COMMENT '状态：0待审核 1正常 2禁用 [落位:入驻审核状态机]',
+    `status`        TINYINT      NOT NULL DEFAULT 0      COMMENT '状态：0待审核 1正常 2禁用 3驳回 [落位:入驻审核状态机]',
     `audit_remark`  VARCHAR(255) NULL                    COMMENT '审核备注（驳回原因）',
     `create_time`   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `create_user`   BIGINT       NULL,
