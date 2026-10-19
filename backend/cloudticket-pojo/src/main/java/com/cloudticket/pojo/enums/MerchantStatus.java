@@ -12,7 +12,8 @@ public enum MerchantStatus {
 
     PENDING_REVIEW(0, "待审核"),
     NORMAL(1, "正常"),
-    DISABLED(2, "禁用");
+    DISABLED(2, "禁用"),
+    REJECTED(3, "驳回");
 
     private final int code;
     private final String desc;
