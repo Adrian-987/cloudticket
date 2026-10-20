@@ -5,6 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.cloudticket.annotation.Audit;
+import com.cloudticket.common.constant.AuditConstant;
 import com.cloudticket.common.context.BaseContext;
 import com.cloudticket.common.exception.BaseException;
 import com.cloudticket.common.result.PageResult;
@@ -107,7 +108,7 @@ public class MerchantServiceImpl extends ServiceImpl<MerchantMapper, Merchant> i
     }
 
     @Override
-    @Audit(action = "MERCHANT_AUDIT",targetType = "MERCHANT")
+    @Audit(action = AuditConstant.MERCHANT_AUDIT, targetType = AuditConstant.TARGET_MERCHANT)
     public void merchantAuditUpdate(Long id, AuditDTO auditDTO) {
         if(!auditDTO.getApproved()&& StrUtil.isBlank(auditDTO.getRemark())){
             throw new BaseException("请填写驳回理由");
@@ -123,7 +124,7 @@ public class MerchantServiceImpl extends ServiceImpl<MerchantMapper, Merchant> i
     }
 
     @Override
-    @Audit(action = "MERCHANT_DISABLE",targetType = "MERCHANT")
+    @Audit(action = AuditConstant.MERCHANT_DISABLE, targetType = AuditConstant.TARGET_MERCHANT)
     public void merchantDisable(Long id) {
         // ① 先 CAS（并发安全的唯一裁决点）
         boolean success = lambdaUpdate()
@@ -155,7 +156,7 @@ public class MerchantServiceImpl extends ServiceImpl<MerchantMapper, Merchant> i
     }
 
     @Override
-    @Audit(action = "MERCHANT_ENABLE", targetType = "MERCHANT")
+    @Audit(action = AuditConstant.MERCHANT_ENABLE, targetType = AuditConstant.TARGET_MERCHANT)
     public void merchantEnable(Long id) {
         boolean success = lambdaUpdate().set(Merchant::getStatus, MerchantStatus.NORMAL.getCode())
                 .eq(Merchant::getId, id)

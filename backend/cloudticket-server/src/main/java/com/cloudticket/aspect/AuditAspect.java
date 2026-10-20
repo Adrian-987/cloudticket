@@ -2,6 +2,7 @@ package com.cloudticket.aspect;
 
 import cn.hutool.json.JSONUtil;
 import com.cloudticket.annotation.Audit;
+import com.cloudticket.common.constant.AuditConstant;
 import com.cloudticket.common.context.BaseContext;
 import com.cloudticket.pojo.entity.AuditLog;
 import com.cloudticket.service.AuditLogService;
@@ -24,18 +25,18 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 public class AuditAspect {
 
     /** 操作人类型：平台（P1 审计只用于管理端） **/
-    private static final int OPERATOR_TYPE_ADMIN = 3;
+    private static final int OPERATOR_TYPE_ADMIN = AuditConstant.OPERATOR_ADMIN;
 
     @Autowired
     AuditLogService auditLogService;
 
     @Around("@annotation(audit)")
     public Object around(ProceedingJoinPoint pjp, Audit audit) throws Throwable {
-        int result = 1;
+        int result = AuditConstant.RESULT_SUCCESS;
         try {
             return pjp.proceed();          // 执行业务
         } catch (Throwable e) {
-            result = 0;
+            result = AuditConstant.RESULT_FAIL;
             throw e;                       // 原样抛回，不影响业务语义
         } finally {
             try {

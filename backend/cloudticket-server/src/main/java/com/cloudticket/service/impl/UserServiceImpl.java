@@ -6,6 +6,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.cloudticket.annotation.Audit;
+import com.cloudticket.common.constant.AuditConstant;
 import com.cloudticket.common.context.BaseContext;
 import com.cloudticket.common.exception.BaseException;
 import com.cloudticket.common.result.PageResult;
@@ -139,7 +140,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    @Audit(action = "USER_DISABLE", targetType = "USER")
+    @Audit(action = AuditConstant.USER_DISABLE, targetType = AuditConstant.TARGET_USER)
     public void userUnable(Long id) {
         // ① 先 CAS（并发安全的唯一裁决点）
         boolean success = lambdaUpdate()
@@ -163,7 +164,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    @Audit(action = "USER_ENABLE", targetType = "USER")
+    @Audit(action = AuditConstant.USER_ENABLE, targetType = AuditConstant.TARGET_USER)
     public void userEnable(Long id) {
         boolean success = lambdaUpdate().set(User::getStatus, EnableStatus.NORMAL.getCode())
                 .eq(User::getStatus, EnableStatus.DISABLED.getCode())

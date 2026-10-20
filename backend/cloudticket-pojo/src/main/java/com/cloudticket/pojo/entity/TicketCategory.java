@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.annotation.Version;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,8 +15,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * 票档表（ticket_category）—— 库存主体
- * version 字段配合乐观锁插件：MP 内置 update 时自动拼 version=version+1 WHERE version=旧值
+ * 票档定义表（ticket_category）—— 演出级，全场次通用
+ * 票档是"座位等级"（内场VIP/看台A）：同一演出的所有场次共享这组定义（票价统一，改价即全改）。
+ * 库存不在这里：场次 × 票档 的独立库存见 SessionCategoryStock。
  */
 @Data
 @NoArgsConstructor
@@ -31,24 +31,13 @@ public class TicketCategory implements Serializable {
     @TableId(type = IdType.AUTO)
     private Long id;
 
-    private Long sessionId;
+    private Long showId;
 
     private String name;
 
     private BigDecimal price;
 
-    private Integer stock;
-
-    private Integer soldCount;
-
-    private Integer memberStock;
-
-    private Integer soldMemberCount;
-
     private Integer limitPerUser;
-
-    @Version
-    private Integer version;
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;

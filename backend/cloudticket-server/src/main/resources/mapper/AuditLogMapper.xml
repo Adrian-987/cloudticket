@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cloudticket.mapper.AuditLogMapper">
+
+    <!-- 演出审核历史：联表补审核人名字 + 从 params 快照解析 approved/remark
+         params 结构 = [showId, {"approved":false,"remark":"..."}]，取 $[1] 元素 -->
+    <select id="selectShowAuditRecords" resultType="com.cloudticket.pojo.vo.AuditRecordVO">
+        SELECT ad.real_name AS operatorName,
+               CAST(JSON_EXTRACT(a.params, '$[1].approved') AS UNSIGNED) = 1 AS approved,
+               JSON_UNQUOTE(JSON_EXTRACT(a.params, '$[1].remark')) AS remark,
+               a.create_time AS createTime
+        FROM audit_log a
+        LEFT JOIN admin ad ON a.operator_id = ad.id
+        WHERE a.target_type = 'SHOW'
+          AND a.target_id = #{showId}
+        ORDER BY a.create_time DESC
+    </select>
+
+</mapper>
