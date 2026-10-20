@@ -137,26 +137,42 @@ CREATE TABLE `show_session` (
 ) ENGINE = InnoDB COMMENT ='场次表';
 
 -- ----------------------------------------------------------------------------
--- 7. 票档表（库存主体）
+-- 7. 票档定义表（演出级：全场次通用，票价统一）
 -- ----------------------------------------------------------------------------
 CREATE TABLE `ticket_category` (
     `id`                BIGINT        NOT NULL AUTO_INCREMENT COMMENT '主键',
-    `session_id`        BIGINT        NOT NULL                COMMENT '场次 id',
+    `show_id`           BIGINT        NOT NULL                COMMENT '演出 id（票档挂演出下，全场次通用）',
     `name`              VARCHAR(50)   NOT NULL                COMMENT '票档名（内场VIP/看台A）',
-    `price`             DECIMAL(10, 2) NOT NULL               COMMENT '票价',
+    `price`             DECIMAL(10, 2) NOT NULL               COMMENT '票价（全场次统一，改价即全改）',
+    `limit_per_user`    INT           NOT NULL DEFAULT 2      COMMENT '单用户限购数量',
+    `create_time`       DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `create_user`       BIGINT        NULL,
+    `update_time`       DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `update_user`       BIGINT        NULL,
+    PRIMARY KEY (`id`),
+    KEY `idx_show` (`show_id`)
+) ENGINE = InnoDB COMMENT ='票档定义表（演出级，全场次通用）';
+
+-- ----------------------------------------------------------------------------
+-- 7.1 场次票档库存表（笛卡尔积：场次 × 票档 = 独立库存单元，双池主体）
+-- ----------------------------------------------------------------------------
+CREATE TABLE `session_category_stock` (
+    `id`                BIGINT        NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `session_id`        BIGINT        NOT NULL                COMMENT '场次 id',
+    `category_id`       BIGINT        NOT NULL                COMMENT '票档 id（演出级定义）',
     `stock`             INT           NOT NULL DEFAULT 0      COMMENT '公开池库存 [落位:双池Lua扣减]',
     `sold_count`        INT           NOT NULL DEFAULT 0      COMMENT '公开池已售',
     `member_stock`      INT           NOT NULL DEFAULT 0      COMMENT '会员池库存（仅会员可购）',
     `sold_member_count` INT           NOT NULL DEFAULT 0      COMMENT '会员池已售',
-    `limit_per_user`    INT           NOT NULL DEFAULT 2      COMMENT '单用户限购数量',
     `version`           INT           NOT NULL DEFAULT 0      COMMENT '乐观锁版本号 [落位:MP乐观锁插件/条件更新兜底]',
     `create_time`       DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `create_user`       BIGINT        NULL,
     `update_time`       DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     `update_user`       BIGINT        NULL,
     PRIMARY KEY (`id`),
-    KEY `idx_session` (`session_id`)
-) ENGINE = InnoDB COMMENT ='票档表（双池库存主体）';
+    UNIQUE KEY `uk_session_category` (`session_id`, `category_id`),
+    KEY `idx_category` (`category_id`)
+) ENGINE = InnoDB COMMENT ='场次票档库存表（场次×票档 笛卡尔积，独立库存）';
 
 -- ----------------------------------------------------------------------------
 -- 8. 观演人表 [落位:实名限购的数据基础]
