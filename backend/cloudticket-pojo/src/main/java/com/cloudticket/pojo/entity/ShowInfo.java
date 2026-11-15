@@ -46,7 +46,9 @@ public class ShowInfo implements Serializable {
 
     private Integer totalStock;
 
-    private Integer soldCount;
+    private Integer soldCount=0;
+
+    private String auditRemark;
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;

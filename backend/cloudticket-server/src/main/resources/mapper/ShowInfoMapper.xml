@@ -25,5 +25,14 @@
         LEFT JOIN merchant m ON s.merchant_id = m.id
         WHERE s.id = #{id}
     </select>
+    <select id="selectMerchantDetail" resultType="com.cloudticket.pojo.vo.ShowMerchantDetailVO">
+        SELECT s.id, s.title, s.category, s.cover_url, s.detail, s.guide,
+        v.name AS venueName,s.venue_id,
+        s.status, s.audit_remark AS auditRemark,
+        s.total_stock, s.sold_count, s.create_time
+        FROM show_info s
+        LEFT JOIN venue v ON s.venue_id = v.id
+        WHERE s.id = #{id} AND s.merchant_id = #{merchantId}
+    </select>
 
 </mapper>

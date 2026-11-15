@@ -1,4 +1,4 @@
-package com.cloudticket.controller;
+package com.cloudticket.controller.admin;
 
 import com.cloudticket.common.result.PageResult;
 import com.cloudticket.common.result.Result;
@@ -19,13 +19,13 @@ public class AdminShowController {
 
     @GetMapping("/shows/page")
     public Result<PageResult<ShowAdminVO>> showPage(ShowPageQuery showPageQuery){
-        PageResult<ShowAdminVO> pageResult=showService.showPage(showPageQuery);
+        PageResult<ShowAdminVO> pageResult=showService.showAdminPage(showPageQuery);
         return Result.success(pageResult);
     }
 
     @GetMapping("/shows/{id}")
     public Result<ShowAuditDetailVO> showDetail(@PathVariable Long id){
-        ShowAuditDetailVO showAuditDetailVO=showService.showDetail(id);
+        ShowAuditDetailVO showAuditDetailVO=showService.showAdminDetail(id);
         return Result.success(showAuditDetailVO);
     }
 

@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.cloudticket.pojo.entity.ShowInfo;
 import com.cloudticket.pojo.vo.ShowAdminVO;
 import com.cloudticket.pojo.vo.ShowAuditDetailVO;
+import com.cloudticket.pojo.vo.ShowMerchantDetailVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -15,4 +16,6 @@ public interface ShowInfoMapper extends BaseMapper<ShowInfo> {
     IPage<ShowAdminVO> selectShowPage(Page<ShowAdminVO> page, @Param("status") Integer status);
 
     ShowAuditDetailVO selectAuditDetail(@Param("id") Long id);
+
+    ShowMerchantDetailVO selectMerchantDetail(@Param("id") Long id, @Param("merchantId") Long merchantId);
 }

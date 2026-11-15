@@ -35,13 +35,13 @@ public class SessionCategoryStock implements Serializable {
 
     private Long categoryId;
 
-    private Integer stock;
+    private Integer stock=0;
 
-    private Integer soldCount;
+    private Integer soldCount=0;
 
-    private Integer memberStock;
+    private Integer memberStock=0;
 
-    private Integer soldMemberCount;
+    private Integer soldMemberCount=0;
 
     @Version
     private Integer version;

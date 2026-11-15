@@ -8,7 +8,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.cloudticket.common.context.BaseContext;
 import com.cloudticket.common.exception.BaseException;
 import com.cloudticket.mapper.AttendeeMapper;
-import com.cloudticket.pojo.constant.UserConstant;
+import com.cloudticket.common.constant.UserConstant;
 import com.cloudticket.pojo.dto.AttendeeSaveDTO;
 import com.cloudticket.pojo.entity.Attendee;
 import com.cloudticket.pojo.vo.AttendeeVO;

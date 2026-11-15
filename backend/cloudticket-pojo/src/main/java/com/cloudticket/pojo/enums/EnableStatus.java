@@ -1,6 +1,5 @@
 package com.cloudticket.pojo.enums;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
@@ -8,7 +7,6 @@ import lombok.Getter;
  */
 //枚举类在创造时new静态实例字段,用于业务引用,并创造静态方法,数字反推枚举类
 @Getter
-@AllArgsConstructor
 public enum EnableStatus {
 
     DISABLED(0, "禁用"),
@@ -16,6 +14,11 @@ public enum EnableStatus {
 
     private final int code;
     private final String desc;
+
+    EnableStatus(int code, String desc) {
+        this.code = code;
+        this.desc = desc;
+    }
 
     /**
      * 按数据库存储的数字反查枚举，未匹配返回 null
