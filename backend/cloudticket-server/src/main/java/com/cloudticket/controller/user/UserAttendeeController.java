@@ -1,4 +1,4 @@
-package com.cloudticket.controller;
+package com.cloudticket.controller.user;
 
 import com.cloudticket.common.result.Result;
 import com.cloudticket.pojo.dto.AttendeeSaveDTO;
@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/use")
-public class AttendeeController {
+public class UserAttendeeController {
     @Autowired
     AttendeeService attendeeService;
 

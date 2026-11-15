@@ -1,4 +1,4 @@
-package com.cloudticket.controller;
+package com.cloudticket.controller.merchant;
 
 import com.cloudticket.common.result.Result;
 import com.cloudticket.pojo.dto.MerchantLoginDTO;

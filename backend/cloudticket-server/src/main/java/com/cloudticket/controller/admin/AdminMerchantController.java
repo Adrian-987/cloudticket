@@ -1,4 +1,4 @@
-package com.cloudticket.controller;
+package com.cloudticket.controller.admin;
 
 import com.cloudticket.common.result.PageResult;
 import com.cloudticket.common.result.Result;
@@ -6,7 +6,6 @@ import com.cloudticket.pojo.dto.AuditDTO;
 import com.cloudticket.pojo.dto.MerchantPageQuery;
 import com.cloudticket.pojo.vo.MerchantAuditVO;
 import com.cloudticket.service.MerchantService;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

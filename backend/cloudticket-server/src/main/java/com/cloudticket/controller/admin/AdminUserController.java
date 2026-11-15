@@ -1,4 +1,4 @@
-package com.cloudticket.controller;
+package com.cloudticket.controller.admin;
 
 import com.cloudticket.common.result.PageResult;
 import com.cloudticket.common.result.Result;

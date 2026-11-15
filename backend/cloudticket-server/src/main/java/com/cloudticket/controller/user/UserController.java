@@ -1,17 +1,13 @@
-package com.cloudticket.controller;
+package com.cloudticket.controller.user;
 
 import com.cloudticket.common.result.Result;
-import com.cloudticket.pojo.dto.AttendeeSaveDTO;
 import com.cloudticket.pojo.dto.UserLoginDTO;
 import com.cloudticket.pojo.dto.UserRegisterDTO;
 import com.cloudticket.pojo.vo.*;
-import com.cloudticket.service.AttendeeService;
 import com.cloudticket.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/user")

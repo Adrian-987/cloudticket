@@ -1,4 +1,4 @@
-package com.cloudticket.controller;
+package com.cloudticket.controller.admin;
 
 import com.cloudticket.common.result.PageResult;
 import com.cloudticket.common.result.Result;
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/admin")
-public class VenueController {
+public class AdminVenueController {
 
     @Autowired
     VenueService venueService;
