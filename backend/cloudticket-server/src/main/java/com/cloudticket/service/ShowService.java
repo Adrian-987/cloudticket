@@ -23,4 +23,8 @@ public interface ShowService extends IService<ShowInfo> {
     PageResult<ShowMerchantVO> showMerchantPage(ShowPageQuery showPageQuery);
 
     ShowMerchantDetailVO showMerchantDetail(Long id);
+
+    void showReview(Long id);
+
+    void showOffSale(Long id);
 }

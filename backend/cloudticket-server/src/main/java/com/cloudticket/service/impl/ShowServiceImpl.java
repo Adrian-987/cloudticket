@@ -196,6 +196,34 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
         return vo;
     }
 
+    @Override
+    public void showReview(Long id) {
+        Boolean success=lambdaUpdate()
+                .set(ShowInfo::getStatus,ShowStatus.PENDING_REVIEW.getCode())
+                .set(ShowInfo::getAuditRemark,null)
+                .eq(ShowInfo::getId,id)
+                .eq(ShowInfo::getMerchantId,BaseContext.getCurrentId())
+                .in(ShowInfo::getStatus,ShowStatus.DRAFT.getCode(),
+                        ShowStatus.REJECTED.getCode())
+                .update();
+        if (!success) {
+            throw new BaseException("该演出不存在或当前状态不可提交（仅草稿/驳回可提交）");
+        }
+    }
+
+    @Override
+    public void showOffSale(Long id) {
+        Boolean success=lambdaUpdate()
+                .set(ShowInfo::getStatus,ShowStatus.OFF_SALE.getCode())
+                .eq(ShowInfo::getStatus,ShowStatus.ON_SALE.getCode())
+                .eq(ShowInfo::getMerchantId,BaseContext.getCurrentId())
+                .eq(ShowInfo::getId,id)
+                .update();
+        if(!success){
+            throw new BaseException("该演出不存在或当前状态不可下架");
+        }
+    }
+
     private static int getTotalStock(ShowCreateDTO showCreateDTO) {
         // ③ 总库存 = 每个场次的库存之和 × 场次数（全场统一库存）
         int perSessionStock = showCreateDTO.getCategories().stream()
