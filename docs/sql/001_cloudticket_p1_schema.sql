@@ -106,6 +106,7 @@ CREATE TABLE `show_info` (
     `status`      TINYINT      NOT NULL DEFAULT 0      COMMENT '状态：0草稿 1待审核 2驳回 3审核通过 4销售中 5已结束 6已下架 [落位:审核状态机+条件更新CAS]',
     `total_stock` INT          NOT NULL DEFAULT 0      COMMENT '总库存（两池之和，冗余校验用）',
     `sold_count`  INT          NOT NULL DEFAULT 0      COMMENT '总销量（冗余，攒批统计+对账校准）',
+    `audit_remark` VARCHAR(255) NULL                   COMMENT '最近一次审核意见（驳回原因；通过/重新提交时清空）',
     `create_time` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `create_user` BIGINT       NULL,
     `update_time` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
