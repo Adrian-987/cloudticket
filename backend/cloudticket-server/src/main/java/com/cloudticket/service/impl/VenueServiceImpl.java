@@ -8,12 +8,12 @@ import com.cloudticket.common.exception.BaseException;
 import com.cloudticket.common.result.PageResult;
 import com.cloudticket.mapper.ShowInfoMapper;
 import com.cloudticket.mapper.VenueMapper;
-import com.cloudticket.pojo.dto.VenuePageQuery;
-import com.cloudticket.pojo.dto.VenueSaveDTO;
+import com.cloudticket.pojo.dto.AdminVenuePageQuery;
+import com.cloudticket.pojo.dto.AdminVenueSaveDTO;
 import com.cloudticket.pojo.entity.ShowInfo;
 import com.cloudticket.pojo.entity.Venue;
 import com.cloudticket.pojo.vo.IdVO;
-import com.cloudticket.pojo.vo.VenueInfoVO;
+import com.cloudticket.pojo.vo.AdminVenueVO;
 import com.cloudticket.pojo.vo.VenueVO;
 import com.cloudticket.service.VenueService;
 import org.springframework.beans.BeanUtils;
@@ -30,7 +30,7 @@ public class VenueServiceImpl extends ServiceImpl<VenueMapper, Venue>implements 
     ShowInfoMapper showInfoMapper;
 
     @Override
-    public PageResult<VenueVO> venuePageQuery(VenuePageQuery venuePageQuery) {
+    public PageResult<VenueVO> venuePageQuery(AdminVenuePageQuery venuePageQuery) {
         Page<Venue> page=new Page<>(venuePageQuery.getPageNum(),venuePageQuery.getPageSize());
         String name = venuePageQuery.getName();
         String city=venuePageQuery.getCity();
@@ -48,7 +48,7 @@ public class VenueServiceImpl extends ServiceImpl<VenueMapper, Venue>implements 
     }
 
     @Override
-    public IdVO venueSave(VenueSaveDTO venueSaveDTO) {
+    public IdVO venueSave(AdminVenueSaveDTO venueSaveDTO) {
         Venue one = lambdaQuery().eq(Venue::getCity, venueSaveDTO.getCity())
                 .eq(Venue::getName, venueSaveDTO.getName())
                 .one();
@@ -66,7 +66,7 @@ public class VenueServiceImpl extends ServiceImpl<VenueMapper, Venue>implements 
     }
 
     @Override
-    public void venueUpdate(Long id,VenueSaveDTO venueSaveDTO) {
+    public void venueUpdate(Long id,AdminVenueSaveDTO venueSaveDTO) {
         Long dup = lambdaQuery()
                 .eq(Venue::getCity, venueSaveDTO.getCity())
                 .eq(Venue::getName, venueSaveDTO.getName())
@@ -100,12 +100,12 @@ public class VenueServiceImpl extends ServiceImpl<VenueMapper, Venue>implements 
     }
 
     @Override
-    public VenueInfoVO venueInfo(Long id) {
+    public AdminVenueVO venueInfo(Long id) {
         Venue venue = getById(id);
         if(venue==null){
             throw new BaseException("该场馆不存在");
         }
-        VenueInfoVO venueInfoVO=new VenueInfoVO();
+        AdminVenueVO venueInfoVO=new AdminVenueVO();
         BeanUtils.copyProperties(venue,venueInfoVO);
         Long count = showInfoMapper.selectCount(new LambdaQueryWrapper<ShowInfo>().eq(ShowInfo::getVenueId, id));
         venueInfoVO.setShowCount(count.intValue());

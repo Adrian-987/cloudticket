@@ -5,20 +5,20 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class VenueInfoVO {
+public class AdminMerchantAuditVO {
     private Long id;
     private String name;
-    private String address;
-    private String city;
-    private BigDecimal lat;
-    private BigDecimal lng;
+    private String licenseNo;
+    private String contactName;
+    private String contactPhone;
+    private Integer status;
+    private String statusDesc;
     private LocalDateTime createTime;
-    private Integer showCount;
+
 }

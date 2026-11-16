@@ -9,8 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class MerchantPageQuery {
-    private Integer pageNum=1;
-    private Integer pageSize=10;
-    private Integer status;
+public class MerchantAuditDTO {
+    private Boolean approved;
+    private String remark;
 }

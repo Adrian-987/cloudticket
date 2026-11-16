@@ -54,10 +54,10 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
     VenueService venueService;
 
     @Override
-    public PageResult<ShowAdminVO> showAdminPage(ShowPageQuery showPageQuery) {
-        Page<ShowAdminVO> page = new Page<>(showPageQuery.getPageNum(), showPageQuery.getPageSize());
+    public PageResult<AdminShowVO> showAdminPage(ShowPageQuery showPageQuery) {
+        Page<AdminShowVO> page = new Page<>(showPageQuery.getPageNum(), showPageQuery.getPageSize());
         showInfoMapper.selectShowPage(page, showPageQuery.getStatus());
-        List<ShowAdminVO> rows = page.getRecords().stream().map(vo -> {
+        List<AdminShowVO> rows = page.getRecords().stream().map(vo -> {
             vo.setStatusDesc(ShowStatus.of(vo.getStatus()).getDesc());   // 列表也要状态翻译
             vo.setCategoryDesc(ShowCategory.of(vo.getCategory()).getLabel());   // 分类翻译
             return vo;
@@ -66,9 +66,9 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
     }
 
     @Override
-    public ShowAuditDetailVO showAdminDetail(Long id) {
+    public AdminShowDetailVO showAdminDetail(Long id) {
         // ① 演出 + 主办方名称：一条 SQL（LEFT JOIN merchant），直接映射 VO
-        ShowAuditDetailVO vo = showInfoMapper.selectAuditDetail(id);
+        AdminShowDetailVO vo = showInfoMapper.selectAuditDetail(id);
         if (vo == null) throw new BaseException("演出不存在");
         vo.setStatusDesc(ShowStatus.of(vo.getStatus()).getDesc());
         vo.setCategoryDesc(ShowCategory.of(vo.getCategory()).getLabel());
@@ -86,7 +86,7 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
 
     @Audit(action = AuditConstant.SHOW_AUDIT, targetType = AuditConstant.TARGET_SHOW)
     @Override
-    public void showAudit(Long id, ShowAuditDTO showAuditDTO) {
+    public void showAudit(Long id, AdminShowAuditDTO showAuditDTO) {
         // ⓪ 演出必须存在（保证后续校验/提示准确）
         if (getById(id) == null) {
             throw new BaseException("演出不存在");
@@ -119,7 +119,7 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
 
     @Override
     @Transactional(rollbackFor = Exception.class)   // 三张表一起写：任何一步失败全回滚
-    public IdVO showcreate(ShowCreateDTO showCreateDTO) {
+    public IdVO showcreate(MerchantShowSaveDTO showCreateDTO) {
         validDate(showCreateDTO);                                                  // 有效性校验
         ShowInfo show = createShow(showCreateDTO, getTotalStock(showCreateDTO));   // 写 show_info
         insertShowStructure(show.getId(), showCreateDTO);                          // 写票档 + 场次 + 库存
@@ -129,7 +129,7 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void showUpdate(Long id, ShowCreateDTO showCreateDTO) {
+    public void showUpdate(Long id, MerchantShowSaveDTO showCreateDTO) {
         ShowInfo show = getById(id);
         if (show == null) {
             throw new BaseException("未找到该演出");
@@ -165,7 +165,7 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
     }
 
     @Override
-    public PageResult<ShowMerchantVO> showMerchantPage(ShowPageQuery showPageQuery) {
+    public PageResult<MerchantShowVO> showMerchantPage(ShowPageQuery showPageQuery) {
         Long currentId = BaseContext.getCurrentId();
         Integer status = showPageQuery.getStatus();
         Page<ShowInfo> page=new Page<>(showPageQuery.getPageNum(),showPageQuery.getPageSize());
@@ -173,8 +173,8 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
                 .eq(ShowInfo::getMerchantId,currentId)
                 .eq(status!=null,ShowInfo::getStatus,status)
                 .page(page);
-        List<ShowMerchantVO> list = page.getRecords().stream().map(showInfo -> {
-            ShowMerchantVO showMerchantVO = new ShowMerchantVO();
+        List<MerchantShowVO> list = page.getRecords().stream().map(showInfo -> {
+            MerchantShowVO showMerchantVO = new MerchantShowVO();
             BeanUtils.copyProperties(showInfo, showMerchantVO);
             showMerchantVO.setStatusDesc(ShowStatus.of(showInfo.getStatus()).getDesc());
             showMerchantVO.setCategoryDesc(ShowCategory.of(showInfo.getCategory()).getLabel());
@@ -184,9 +184,9 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
     }
 
     @Override
-    public ShowMerchantDetailVO showMerchantDetail(Long id) {
+    public MerchantShowDetailVO showMerchantDetail(Long id) {
         Long merchantId = BaseContext.getCurrentId();
-        ShowMerchantDetailVO vo=showInfoMapper.selectMerchantDetail(id,merchantId);
+        MerchantShowDetailVO vo=showInfoMapper.selectMerchantDetail(id,merchantId);
         if (vo==null){
             throw new BaseException("该演出不存在");
         }
@@ -295,7 +295,7 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
         return vo;
     }
 
-    private static int getTotalStock(ShowCreateDTO showCreateDTO) {
+    private static int getTotalStock(MerchantShowSaveDTO showCreateDTO) {
         // ③ 总库存 = 每个场次的库存之和 × 场次数（全场统一库存）
         int perSessionStock = showCreateDTO.getCategories().stream()
                 .mapToInt(c -> c.getStock() + c.getMemberStock())
@@ -331,7 +331,7 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
         }
     }
 
-    private void validDate(ShowCreateDTO showCreateDTO) {
+    private void validDate(MerchantShowSaveDTO showCreateDTO) {
         // ① 场馆必须存在
         Venue venue = venueService.getById(showCreateDTO.getVenueId());
         if (venue == null) {
@@ -351,7 +351,7 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
         });
         //票档名不重复
         Set<String> categoryNames = new HashSet<>();
-        for (ShowCategoryDTO category : showCreateDTO.getCategories()) {
+        for (ShowSaveCategoryDTO category : showCreateDTO.getCategories()) {
             if (!categoryNames.add(category.getName())) {
                 throw new BaseException("票档名不能重复：" + category.getName());
             }
@@ -364,7 +364,7 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
 
     }
     /** 创建演出主记录（草稿态），返回回填 id 的实体 */
-    private ShowInfo createShow(ShowCreateDTO showCreateDTO, int totalStock) {
+    private ShowInfo createShow(MerchantShowSaveDTO showCreateDTO, int totalStock) {
         ShowInfo show = new ShowInfo();
         BeanUtils.copyProperties(showCreateDTO, show);   // title/category/coverUrl/detail/guide/venueId
         show.setMerchantId(BaseContext.getCurrentId());
@@ -425,7 +425,7 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
 
 
     /** 写演出子结构：票档定义 + 场次 + 场次×票档库存（创建/编辑共用） */
-    private void insertShowStructure(Long showId, ShowCreateDTO showCreateDTO) {
+    private void insertShowStructure(Long showId, MerchantShowSaveDTO showCreateDTO) {
         // 票档定义（演出级，一份）
         List<TicketCategory> categories = showCreateDTO.getCategories().stream().map(c -> {
             TicketCategory tc = new TicketCategory();
@@ -449,7 +449,7 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
         for (ShowSession ss : sessions) {
             for (int i = 0; i < categories.size(); i++) {
                 TicketCategory tc = categories.get(i);
-                ShowCategoryDTO source = showCreateDTO.getCategories().get(i);   // 同下标对应
+                ShowSaveCategoryDTO source = showCreateDTO.getCategories().get(i);   // 同下标对应
                 SessionCategoryStock stock = new SessionCategoryStock();
                 stock.setSessionId(ss.getId());
                 stock.setCategoryId(tc.getId());

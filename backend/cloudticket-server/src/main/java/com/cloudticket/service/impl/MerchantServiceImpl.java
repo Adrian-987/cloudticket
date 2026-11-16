@@ -13,12 +13,12 @@ import com.cloudticket.common.util.JwtUtil;
 import com.cloudticket.common.util.PasswordUtil;
 import com.cloudticket.config.JwtProperties;
 import com.cloudticket.mapper.MerchantMapper;
-import com.cloudticket.pojo.dto.AuditDTO;
+import com.cloudticket.pojo.dto.MerchantAuditDTO;
 import com.cloudticket.pojo.dto.MerchantLoginDTO;
-import com.cloudticket.pojo.dto.MerchantPageQuery;
+import com.cloudticket.pojo.dto.AdminMerchantPageQuery;
 import com.cloudticket.pojo.entity.Merchant;
 import com.cloudticket.pojo.enums.MerchantStatus;
-import com.cloudticket.pojo.vo.MerchantAuditVO;
+import com.cloudticket.pojo.vo.AdminMerchantAuditVO;
 import com.cloudticket.pojo.vo.MerchantInfoVO;
 import com.cloudticket.pojo.vo.MerchantLoginVO;
 import com.cloudticket.service.MerchantService;
@@ -89,7 +89,7 @@ public class MerchantServiceImpl extends ServiceImpl<MerchantMapper, Merchant> i
     }
 
     @Override
-    public PageResult<MerchantAuditVO> merchantAuditList(MerchantPageQuery merchantPageQuery) {
+    public PageResult<AdminMerchantAuditVO> merchantAuditList(AdminMerchantPageQuery merchantPageQuery) {
         Page<Merchant> page=new Page<Merchant>(merchantPageQuery.getPageNum(), merchantPageQuery.getPageSize());
         Integer status = merchantPageQuery.getStatus();
         page=lambdaQuery()
@@ -97,8 +97,8 @@ public class MerchantServiceImpl extends ServiceImpl<MerchantMapper, Merchant> i
                 .orderByAsc(Merchant::getStatus)
                 .orderByDesc(Merchant::getCreateTime)
                 .page(page);
-        List<MerchantAuditVO> list = page.getRecords().stream().map(merchant -> {
-            MerchantAuditVO merchantAuditVO = new MerchantAuditVO();
+        List<AdminMerchantAuditVO> list = page.getRecords().stream().map(merchant -> {
+            AdminMerchantAuditVO merchantAuditVO = new AdminMerchantAuditVO();
             BeanUtils.copyProperties(merchant, merchantAuditVO);
             merchantAuditVO.setStatusDesc(MerchantStatus.of(merchant.getStatus()).getDesc());
             merchantAuditVO.setContactPhone(DesensitizedUtil.mobilePhone(merchant.getContactPhone()));
@@ -109,7 +109,7 @@ public class MerchantServiceImpl extends ServiceImpl<MerchantMapper, Merchant> i
 
     @Override
     @Audit(action = AuditConstant.MERCHANT_AUDIT, targetType = AuditConstant.TARGET_MERCHANT)
-    public void merchantAuditUpdate(Long id, AuditDTO auditDTO) {
+    public void merchantAuditUpdate(Long id, MerchantAuditDTO auditDTO) {
         if(!auditDTO.getApproved()&& StrUtil.isBlank(auditDTO.getRemark())){
             throw new BaseException("请填写驳回理由");
         }

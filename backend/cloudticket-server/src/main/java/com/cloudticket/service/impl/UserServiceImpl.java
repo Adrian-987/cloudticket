@@ -15,12 +15,12 @@ import com.cloudticket.common.util.PasswordUtil;
 import com.cloudticket.config.JwtProperties;
 import com.cloudticket.mapper.UserMapper;
 import com.cloudticket.pojo.dto.UserLoginDTO;
-import com.cloudticket.pojo.dto.UserPageQuery;
+import com.cloudticket.pojo.dto.AdminUserPageQuery;
 import com.cloudticket.pojo.dto.UserRegisterDTO;
 import com.cloudticket.pojo.entity.Merchant;
 import com.cloudticket.pojo.enums.EnableStatus;
 import com.cloudticket.pojo.enums.MerchantStatus;
-import com.cloudticket.pojo.vo.UserAdminVO;
+import com.cloudticket.pojo.vo.AdminUserVO;
 import com.cloudticket.pojo.vo.UserInfoVO;
 import com.cloudticket.pojo.vo.UserLoginVO;
 import com.cloudticket.pojo.vo.UserRegisterVO;
@@ -118,7 +118,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public PageResult<UserAdminVO> userPage(UserPageQuery userPageQuery) {
+    public PageResult<AdminUserVO> userPage(AdminUserPageQuery userPageQuery) {
         Page<User> page=new Page<>(userPageQuery.getPageNum(), userPageQuery.getPageSize());
         String name = userPageQuery.getNickname();
         String phone = userPageQuery.getPhone();
@@ -127,8 +127,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 .like(name != null, User::getNickname, name)
                 .eq(phone != null, User::getPhone, phone)
                 .page(page);
-        List<UserAdminVO> list = page.getRecords().stream().map(user -> {
-            UserAdminVO userAdminVO = new UserAdminVO();
+        List<AdminUserVO> list = page.getRecords().stream().map(user -> {
+            AdminUserVO userAdminVO = new AdminUserVO();
             BeanUtils.copyProperties(user, userAdminVO);
             userAdminVO.setPhone(DesensitizedUtil.mobilePhone(user.getPhone()));
             userAdminVO.setStatusDesc(EnableStatus.of(user.getStatus()).getDesc());

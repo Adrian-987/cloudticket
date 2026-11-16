@@ -10,13 +10,13 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * 场次（不含票档——票档是演出级定义，见 ShowCreateDTO.categories）
+ * 场次（不含票档——票档是演出级定义，见 MerchantShowSaveDTO.categories）
  */
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ShowSessionDTO {
+public class ShowSaveSessionDTO {
 
     @Size(max = 50, message = "场次名最多 50 字")
     private String sessionName;

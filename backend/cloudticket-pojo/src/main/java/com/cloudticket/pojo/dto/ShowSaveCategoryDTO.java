@@ -17,7 +17,7 @@ import java.math.BigDecimal;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ShowCategoryDTO {
+public class ShowSaveCategoryDTO {
     @NotBlank(message = "票档名不能为空")
     @Size(max = 50, message = "票档名最多 50 字")
     private String name;

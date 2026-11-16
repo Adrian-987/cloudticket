@@ -61,7 +61,7 @@ public class AuditAspect {
         auditLogService.save(auditLog);
     }
 
-    /** 约定：方法参数中第一个 Long 为目标 id（如 merchantAuditUpdate(Long id, AuditDTO dto)） */
+    /** 约定：方法参数中第一个 Long 为目标 id（如 merchantAuditUpdate(Long id, MerchantAuditDTO dto)） */
     private Long getTargetId(ProceedingJoinPoint pjp) {
         for (Object arg : pjp.getArgs()) {
             if (arg instanceof Long id) {

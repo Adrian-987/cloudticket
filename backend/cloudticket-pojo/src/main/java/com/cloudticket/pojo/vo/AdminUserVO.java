@@ -11,14 +11,14 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ShowMerchantVO {
-    private Long id;
-    private String title;
-    private Integer category;
-    private String categoryDesc;
-    private String coverUrl;
+public class AdminUserVO {
+    private Long userId;
+    private String phone;
+    private String nickname;
+    private Integer vipLevel;
+    private Integer points;
+    private Integer orderCount=0;
     private Integer status;
     private String statusDesc;
-    private String auditRemark;    // ★ 驳回原因回显（主办方专属）
     private LocalDateTime createTime;
 }

@@ -9,7 +9,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AuditDTO {
-    private Boolean approved;
-    private String remark;
+public class AdminMerchantPageQuery {
+    private Integer pageNum=1;
+    private Integer pageSize=10;
+    private Integer status;
 }

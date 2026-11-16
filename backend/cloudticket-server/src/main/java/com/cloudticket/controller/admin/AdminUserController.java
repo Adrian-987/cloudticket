@@ -2,8 +2,8 @@ package com.cloudticket.controller.admin;
 
 import com.cloudticket.common.result.PageResult;
 import com.cloudticket.common.result.Result;
-import com.cloudticket.pojo.dto.UserPageQuery;
-import com.cloudticket.pojo.vo.UserAdminVO;
+import com.cloudticket.pojo.dto.AdminUserPageQuery;
+import com.cloudticket.pojo.vo.AdminUserVO;
 import com.cloudticket.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -16,8 +16,8 @@ public class AdminUserController {
     UserService userService;
 
     @GetMapping("/users/page")
-    public Result<PageResult<UserAdminVO>> userPage(UserPageQuery userPageQuery){
-        PageResult<UserAdminVO> pageResult=userService.userPage(userPageQuery);
+    public Result<PageResult<AdminUserVO>> userPage(AdminUserPageQuery userPageQuery){
+        PageResult<AdminUserVO> pageResult=userService.userPage(userPageQuery);
         return Result.success(pageResult);
     }
 

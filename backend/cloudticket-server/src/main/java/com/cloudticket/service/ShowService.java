@@ -2,8 +2,8 @@ package com.cloudticket.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.cloudticket.common.result.PageResult;
-import com.cloudticket.pojo.dto.ShowAuditDTO;
-import com.cloudticket.pojo.dto.ShowCreateDTO;
+import com.cloudticket.pojo.dto.AdminShowAuditDTO;
+import com.cloudticket.pojo.dto.MerchantShowSaveDTO;
 import com.cloudticket.pojo.dto.ShowPageQuery;
 import com.cloudticket.pojo.dto.UserShowPageQuery;
 import com.cloudticket.pojo.entity.ShowInfo;
@@ -13,19 +13,19 @@ import jakarta.validation.Valid;
 import java.util.List;
 
 public interface ShowService extends IService<ShowInfo> {
-    PageResult<ShowAdminVO> showAdminPage(ShowPageQuery showPageQuery);
+    PageResult<AdminShowVO> showAdminPage(ShowPageQuery showPageQuery);
 
-    ShowAuditDetailVO showAdminDetail(Long id);
+    AdminShowDetailVO showAdminDetail(Long id);
 
-    void showAudit(Long id, @Valid ShowAuditDTO showAuditDTO);
+    void showAudit(Long id, @Valid AdminShowAuditDTO showAuditDTO);
 
-    IdVO showcreate(@Valid ShowCreateDTO showCreateDTO);
+    IdVO showcreate(@Valid MerchantShowSaveDTO showCreateDTO);
 
-    void showUpdate(Long id, @Valid ShowCreateDTO showCreateDTO);
+    void showUpdate(Long id, @Valid MerchantShowSaveDTO showCreateDTO);
 
-    PageResult<ShowMerchantVO> showMerchantPage(ShowPageQuery showPageQuery);
+    PageResult<MerchantShowVO> showMerchantPage(ShowPageQuery showPageQuery);
 
-    ShowMerchantDetailVO showMerchantDetail(Long id);
+    MerchantShowDetailVO showMerchantDetail(Long id);
 
     void showReview(Long id);
 

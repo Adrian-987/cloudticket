@@ -4,7 +4,7 @@
 
 <mapper namespace="com.cloudticket.mapper.ShowInfoMapper">
 
-    <select id="selectShowPage" resultType="com.cloudticket.pojo.vo.ShowAdminVO">
+    <select id="selectShowPage" resultType="com.cloudticket.pojo.vo.AdminShowVO">
         SELECT s.id, s.title, s.category,
         m.name AS merchantName,
         s.status, s.create_time AS submitTime
@@ -17,7 +17,7 @@
         </where>
         ORDER BY s.create_time DESC
     </select>
-    <select id="selectAuditDetail" resultType="com.cloudticket.pojo.vo.ShowAuditDetailVO">
+    <select id="selectAuditDetail" resultType="com.cloudticket.pojo.vo.AdminShowDetailVO">
         SELECT s.id, s.title, s.category, s.cover_url, s.detail, s.guide,
         s.status, s.create_time,
         m.name AS merchantName
@@ -25,7 +25,7 @@
         LEFT JOIN merchant m ON s.merchant_id = m.id
         WHERE s.id = #{id}
     </select>
-    <select id="selectMerchantDetail" resultType="com.cloudticket.pojo.vo.ShowMerchantDetailVO">
+    <select id="selectMerchantDetail" resultType="com.cloudticket.pojo.vo.MerchantShowDetailVO">
         SELECT s.id, s.title, s.category, s.cover_url, s.detail, s.guide,
         v.name AS venueName,s.venue_id,
         s.status, s.audit_remark AS auditRemark,

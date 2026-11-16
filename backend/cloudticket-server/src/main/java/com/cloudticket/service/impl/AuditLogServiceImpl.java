@@ -9,7 +9,7 @@ import com.cloudticket.mapper.MerchantMapper;
 import com.cloudticket.mapper.UserMapper;
 import com.cloudticket.pojo.dto.AuditLogPageQuery;
 import com.cloudticket.pojo.entity.AuditLog;
-import com.cloudticket.pojo.vo.AuditLogVO;
+import com.cloudticket.pojo.vo.AdminAuditLogVO;
 import com.cloudticket.service.AuditLogService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +46,7 @@ public class AuditLogServiceImpl extends ServiceImpl<AuditLogMapper,AuditLog> im
     }
 
     @Override
-    public PageResult<AuditLogVO> auditLogPage(AuditLogPageQuery query) {
+    public PageResult<AdminAuditLogVO> auditLogPage(AuditLogPageQuery query) {
         //先查库得到log信息
         Page<AuditLog> page = new Page<>(query.getPageNum(), query.getPageSize());
         String action = query.getAction();
@@ -63,7 +63,7 @@ public class AuditLogServiceImpl extends ServiceImpl<AuditLogMapper,AuditLog> im
         //得到分3端的id的map
         Map<String, String> names = loadOperatorNames(page.getRecords());
         //分装成vo,并加入名字字段
-        List<AuditLogVO> list = page.getRecords().stream()
+        List<AdminAuditLogVO> list = page.getRecords().stream()
                 .map(log -> toVO(log, names))
                 .toList();
         return new PageResult<>((int) page.getTotal(), list);
@@ -103,8 +103,8 @@ public class AuditLogServiceImpl extends ServiceImpl<AuditLogMapper,AuditLog> im
     }
 
     /** 单条日志 → VO：复制同名字段 + 补操作人名字 + 类型描述 */
-    private AuditLogVO toVO(AuditLog log, Map<String, String> names) {
-        AuditLogVO vo = new AuditLogVO();
+    private AdminAuditLogVO toVO(AuditLog log, Map<String, String> names) {
+        AdminAuditLogVO vo = new AdminAuditLogVO();
         BeanUtils.copyProperties(log, vo);
         vo.setOperatorName(names.get(log.getOperatorType() + ":" + log.getOperatorId()));
         vo.setOperatorTypeDesc(switch (log.getOperatorType()) {

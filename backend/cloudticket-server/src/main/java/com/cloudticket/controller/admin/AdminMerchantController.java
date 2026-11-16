@@ -2,9 +2,9 @@ package com.cloudticket.controller.admin;
 
 import com.cloudticket.common.result.PageResult;
 import com.cloudticket.common.result.Result;
-import com.cloudticket.pojo.dto.AuditDTO;
-import com.cloudticket.pojo.dto.MerchantPageQuery;
-import com.cloudticket.pojo.vo.MerchantAuditVO;
+import com.cloudticket.pojo.dto.MerchantAuditDTO;
+import com.cloudticket.pojo.dto.AdminMerchantPageQuery;
+import com.cloudticket.pojo.vo.AdminMerchantAuditVO;
 import com.cloudticket.service.MerchantService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -17,13 +17,13 @@ public class AdminMerchantController {
     private MerchantService merchantService;
 
     @GetMapping("/merchants/page")
-    public Result<PageResult<MerchantAuditVO>> merchantAuditList(MerchantPageQuery merchantPageQuery){
-        PageResult<MerchantAuditVO> pageResult=merchantService.merchantAuditList(merchantPageQuery);
+    public Result<PageResult<AdminMerchantAuditVO>> merchantAuditList(AdminMerchantPageQuery merchantPageQuery){
+        PageResult<AdminMerchantAuditVO> pageResult=merchantService.merchantAuditList(merchantPageQuery);
         return Result.success(pageResult);
     }
 
     @PostMapping("/merchants/{id}/audit")
-    public Result merchantAuditUpdate(@PathVariable Long id,@RequestBody AuditDTO auditDTO){
+    public Result merchantAuditUpdate(@PathVariable Long id,@RequestBody MerchantAuditDTO auditDTO){
         merchantService.merchantAuditUpdate(id,auditDTO);
         return Result.success();
     }

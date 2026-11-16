@@ -1,5 +1,6 @@
 package com.cloudticket.pojo.dto;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,10 +10,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserPageQuery {
-    private Integer pageNum=1;
-    private Integer pageSize=10;
-    private String nickname;
-    private String phone;
-    private Integer status;
+public class AdminShowAuditDTO {
+    @NotNull(message = "请提交是否通过")
+    private Boolean approved;
+    private String remark;
 }

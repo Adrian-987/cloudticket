@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class VenuePageQuery {
+public class AdminVenuePageQuery {
     private Integer pageNum=1;
     private Integer pageSize = 10;
     private String name;

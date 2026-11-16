@@ -3,9 +3,9 @@ package com.cloudticket.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.cloudticket.common.result.PageResult;
 import com.cloudticket.pojo.dto.UserLoginDTO;
-import com.cloudticket.pojo.dto.UserPageQuery;
+import com.cloudticket.pojo.dto.AdminUserPageQuery;
 import com.cloudticket.pojo.dto.UserRegisterDTO;
-import com.cloudticket.pojo.vo.UserAdminVO;
+import com.cloudticket.pojo.vo.AdminUserVO;
 import com.cloudticket.pojo.vo.UserInfoVO;
 import com.cloudticket.pojo.vo.UserLoginVO;
 import com.cloudticket.pojo.vo.UserRegisterVO;
@@ -20,7 +20,7 @@ public interface UserService extends IService<User> {
 
     UserInfoVO userInfo();
 
-    PageResult<UserAdminVO> userPage(UserPageQuery userPageQuery);
+    PageResult<AdminUserVO> userPage(AdminUserPageQuery userPageQuery);
 
     void userUnable(Long id);
 

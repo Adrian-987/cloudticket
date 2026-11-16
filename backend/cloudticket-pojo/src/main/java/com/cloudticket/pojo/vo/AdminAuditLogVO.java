@@ -11,14 +11,14 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserAdminVO {
-    private Long userId;
-    private String phone;
-    private String nickname;
-    private Integer vipLevel;
-    private Integer points;
-    private Integer orderCount=0;
-    private Integer status;
-    private String statusDesc;
+public class AdminAuditLogVO {
+    private String operatorName;
+    private String operatorTypeDesc;
+    private String action;
+    private String targetType;
+    private Long targetId;
+    private Integer result;
+    private String ip;
+    private String traceId;
     private LocalDateTime createTime;
 }

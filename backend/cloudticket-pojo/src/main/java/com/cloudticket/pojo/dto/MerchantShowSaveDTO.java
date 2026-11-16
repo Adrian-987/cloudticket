@@ -20,7 +20,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ShowCreateDTO {
+public class MerchantShowSaveDTO {
 
     @NotBlank(message = "标题不能为空")
     @Size(min = 2, max = 128, message = "标题需 2~128 字")
@@ -42,10 +42,10 @@ public class ShowCreateDTO {
     @NotEmpty(message = "至少需要一个票档")
     @Size(max = 5, message = "最多 5 个票档")
     @Valid
-    private List<ShowCategoryDTO> categories;
+    private List<ShowSaveCategoryDTO> categories;
 
     @NotEmpty(message = "至少需要一个场次")
     @Size(max = 10, message = "最多 10 个场次")
     @Valid
-    private List<ShowSessionDTO> sessions;
+    private List<ShowSaveSessionDTO> sessions;
 }

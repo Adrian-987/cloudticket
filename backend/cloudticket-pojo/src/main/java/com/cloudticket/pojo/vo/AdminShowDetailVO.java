@@ -12,7 +12,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ShowAuditDetailVO {
+public class AdminShowDetailVO {
     private Long id;
     private String title;
     private String merchantName;

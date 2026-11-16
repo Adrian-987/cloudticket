@@ -10,7 +10,7 @@ import java.util.List;
 
 /**
  * 演出详情（主办方视角，契约 06 §4.3）
- * 与平台审核详情（ShowAuditDetailVO）的差异：
+ * 与平台审核详情（AdminShowDetailVO）的差异：
  *  - 有 venueName（场馆名）、auditRemark（驳回原因）、totalStock/soldCount（运营数据）
  *  - 无 merchantName（自己看自己的演出，不需要主办方名）
  * 子结构 SessionVO / CategoryStockVO / AuditRecordVO 复用平台端同一套。
@@ -19,7 +19,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ShowMerchantDetailVO {
+public class MerchantShowDetailVO {
 
     private Long id;
 

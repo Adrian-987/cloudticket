@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class VenueSaveDTO {
+public class AdminVenueSaveDTO {
     @NotBlank(message = "场馆名字不可以为空")
     private String name;
     @NotBlank(message = "场馆城市不可以为空")
