@@ -24,7 +24,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
         registry.addInterceptor(new JwtAuthInterceptor(jwtProperties.getUser().getSecret(), "userId"))
                 .addPathPatterns("/user/**")
-                .excludePathPatterns("/user/auth/login", "/user/auth/register");
+                .excludePathPatterns("/user/auth/login", "/user/auth/register",
+                        // 演出浏览（03 模块）：游客可看，免登录
+                        "/user/shows/**",       // 分类列表 / 分页列表 / 详情
+                        "/user/sessions/**");   // 场次票档余量
 
         registry.addInterceptor(new JwtAuthInterceptor(
                         jwtProperties.getMerchant().getSecret(), "merchantId"))
