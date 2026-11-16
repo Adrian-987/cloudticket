@@ -14,7 +14,8 @@ import java.time.LocalDateTime;
 public class ShowMerchantVO {
     private Long id;
     private String title;
-    private String category;
+    private Integer category;
+    private String categoryDesc;
     private String coverUrl;
     private Integer status;
     private String statusDesc;

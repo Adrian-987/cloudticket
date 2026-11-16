@@ -15,12 +15,10 @@ import com.cloudticket.mapper.SessionMapper;
 import com.cloudticket.mapper.ShowInfoMapper;
 import com.cloudticket.mapper.StockMapper;
 import com.cloudticket.mapper.TicketMapper;
-import com.cloudticket.pojo.dto.ShowAuditDTO;
-import com.cloudticket.pojo.dto.ShowCategoryDTO;
-import com.cloudticket.pojo.dto.ShowCreateDTO;
-import com.cloudticket.pojo.dto.ShowPageQuery;
+import com.cloudticket.pojo.dto.*;
 import com.cloudticket.pojo.entity.*;
 import com.cloudticket.pojo.enums.SessionStatus;
+import com.cloudticket.pojo.enums.ShowCategory;
 import com.cloudticket.pojo.enums.ShowStatus;
 import com.cloudticket.pojo.vo.*;
 import com.cloudticket.service.ShowService;
@@ -61,6 +59,7 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
         showInfoMapper.selectShowPage(page, showPageQuery.getStatus());
         List<ShowAdminVO> rows = page.getRecords().stream().map(vo -> {
             vo.setStatusDesc(ShowStatus.of(vo.getStatus()).getDesc());   // 列表也要状态翻译
+            vo.setCategoryDesc(ShowCategory.of(vo.getCategory()).getLabel());   // 分类翻译
             return vo;
         }).toList();
         return new PageResult<>((int) page.getTotal(), rows);
@@ -72,6 +71,7 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
         ShowAuditDetailVO vo = showInfoMapper.selectAuditDetail(id);
         if (vo == null) throw new BaseException("演出不存在");
         vo.setStatusDesc(ShowStatus.of(vo.getStatus()).getDesc());
+        vo.setCategoryDesc(ShowCategory.of(vo.getCategory()).getLabel());
 
         // ② 场次 × 票档 × 库存 组装（平台详情 / 主办方详情共用）
         //统一根据演出组装出每个场次的各个票档对应库存信息
@@ -177,6 +177,7 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
             ShowMerchantVO showMerchantVO = new ShowMerchantVO();
             BeanUtils.copyProperties(showInfo, showMerchantVO);
             showMerchantVO.setStatusDesc(ShowStatus.of(showInfo.getStatus()).getDesc());
+            showMerchantVO.setCategoryDesc(ShowCategory.of(showInfo.getCategory()).getLabel());
             return showMerchantVO;
         }).toList();
         return new PageResult<>((int)page.getTotal(),list);
@@ -190,6 +191,7 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
             throw new BaseException("该演出不存在");
         }
         vo.setStatusDesc(ShowStatus.of(vo.getStatus()).getDesc());
+        vo.setCategoryDesc(ShowCategory.of(vo.getCategory()).getLabel());
         List<SessionVO> sessionVOS = assembleSessions(id);
         vo.setSessions(sessionVOS);
         vo.setAuditRecords(auditLogMapper.selectShowAuditRecords(id));
@@ -215,13 +217,82 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
     public void showOffSale(Long id) {
         Boolean success=lambdaUpdate()
                 .set(ShowInfo::getStatus,ShowStatus.OFF_SALE.getCode())
-                .eq(ShowInfo::getStatus,ShowStatus.ON_SALE.getCode())
+                // 审核通过（未开售）或销售中，都允许下架
+                .in(ShowInfo::getStatus,ShowStatus.APPROVED.getCode(),ShowStatus.ON_SALE.getCode())
                 .eq(ShowInfo::getMerchantId,BaseContext.getCurrentId())
                 .eq(ShowInfo::getId,id)
                 .update();
         if(!success){
             throw new BaseException("该演出不存在或当前状态不可下架");
         }
+    }
+
+    @Override
+    public List<CategoryVO> categoryList() {
+        return ShowCategory.all().stream()
+                .map(c -> new CategoryVO(c.getCode(), c.getLabel()))
+                .toList();
+    }
+
+    @Override
+    public PageResult<UserShowVO> showUserPage(UserShowPageQuery userShowPageQuery) {
+        Page<UserShowVO> page = new Page<>(userShowPageQuery.getPageNum(), userShowPageQuery.getPageSize());
+        showInfoMapper.selectUserShowPage(page, userShowPageQuery);   // XML：状态/分类/城市/关键词 + 场馆 + 最低价
+        List<UserShowVO> rows = page.getRecords().stream().map(vo -> {
+            vo.setStatusDesc(ShowStatus.of(vo.getStatus()).getUserDesc());   // 用户端文案：即将开售/销售中
+            vo.setCategoryDesc(ShowCategory.of(vo.getCategory()).getLabel());
+            return vo;
+        }).toList();
+        return new PageResult<>((int) page.getTotal(), rows);
+    }
+
+    @Override
+    public SessionStockVO showUserStock(Long sessionId) {
+        ShowSession session = sessionMapper.selectById(sessionId);
+        if(session==null){
+            throw new BaseException("该场次不存在");
+        }
+        Long showId = session.getShowId();
+        Integer status = session.getStatus();
+        SessionStockVO sessionStockVO=new SessionStockVO();
+        sessionStockVO.setSessionId(sessionId);
+        sessionStockVO.setStatus(status);
+        sessionStockVO.setStatusDesc(SessionStatus.of(status).getDesc());
+        List<CategoryRemainVO> list = ticketMapper.selectUserStock(sessionId, showId);
+        // 契约 4.4：场次非"销售中"时结构正常返回，余量字段置 0（前端据 status 置灰面板）
+        if (status != SessionStatus.ON_SALE.getCode()) {
+            list.forEach(c -> {
+                c.setRemainStock(0);
+                c.setMemberRemainStock(0);
+            });
+        }
+        sessionStockVO.setCategories(list);
+        return sessionStockVO;
+    }
+
+    @Override
+    public UserShowDetailVO showUserDetail(Long id) {
+        // ① 主查询：演出 + 场馆 + 价格区间（草稿/待审核/驳回不可见）
+        UserShowDetailVO vo = showInfoMapper.selectUserDetail(id);
+        if (vo == null) {
+            throw new BaseException("演出不存在");
+        }
+        vo.setStatusDesc(ShowStatus.of(vo.getStatus()).getUserDesc());
+        vo.setCategoryDesc(ShowCategory.of(vo.getCategory()).getLabel());
+
+        // ② 场次骨架（不含票档库存，余量走独立接口）
+        List<ShowSession> sessions = sessionMapper.selectList(
+                new LambdaQueryWrapper<ShowSession>()
+                        .eq(ShowSession::getShowId, id)
+                        .orderByAsc(ShowSession::getSessionTime));
+        List<SessionSimpleVO> list = sessions.stream().map(s -> {
+            SessionSimpleVO sv = new SessionSimpleVO();
+            BeanUtils.copyProperties(s, sv);
+            sv.setStatusDesc(SessionStatus.of(s.getStatus()).getDesc());
+            return sv;
+        }).toList();
+        vo.setSessions(list);
+        return vo;
     }
 
     private static int getTotalStock(ShowCreateDTO showCreateDTO) {
@@ -284,6 +355,11 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
             if (!categoryNames.add(category.getName())) {
                 throw new BaseException("票档名不能重复：" + category.getName());
             }
+        }
+
+        // 演出分类必须是合法枚举
+        if (ShowCategory.of(showCreateDTO.getCategory()) == null) {
+            throw new BaseException("演出分类不合法");
         }
 
     }

@@ -34,5 +34,55 @@
         LEFT JOIN venue v ON s.venue_id = v.id
         WHERE s.id = #{id} AND s.merchant_id = #{merchantId}
     </select>
+    <!-- 用户端演出分页：只查审核通过/销售中；含场馆名/城市与最低票档价 -->
+    <select id="selectUserShowPage" resultType="com.cloudticket.pojo.vo.UserShowVO">
+        SELECT s.id, s.title, s.category, s.cover_url, s.status,
+               v.name AS venueName, v.city,
+               (SELECT MIN(tc.price) FROM ticket_category tc WHERE tc.show_id = s.id) AS minPrice,
+               (SELECT MIN(ss.sale_start_time) FROM show_session ss
+                 WHERE ss.show_id = s.id AND ss.sale_start_time > NOW()) AS saleStartTime
+        FROM show_info s
+        LEFT JOIN venue v ON s.venue_id = v.id
+        <where>
+            AND s.status IN (3, 4)
+            <if test="q.category != null">
+                AND s.category = #{q.category}
+            </if>
+            <if test="q.city != null and q.city != ''">
+                AND v.city = #{q.city}
+            </if>
+            <if test="q.keyword != null and q.keyword != ''">
+                AND s.title LIKE CONCAT('%', #{q.keyword}, '%')
+            </if>
+        </where>
+        ORDER BY s.id DESC
+    </select>
+    <!-- 用户端演出详情：演出 + 场馆（一对一嵌套）+ 价格区间 -->
+    <resultMap id="UserShowDetailMap" type="com.cloudticket.pojo.vo.UserShowDetailVO">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="category" column="category"/>
+        <result property="coverUrl" column="cover_url"/>
+        <result property="detail" column="detail"/>
+        <result property="guide" column="guide"/>
+        <result property="status" column="status"/>
+        <result property="minPrice" column="minPrice"/>
+        <result property="maxPrice" column="maxPrice"/>
+        <association property="venue" javaType="com.cloudticket.pojo.vo.VenueVO">
+            <result property="name" column="venueName"/>
+            <result property="city" column="venueCity"/>
+            <result property="address" column="venueAddress"/>
+        </association>
+    </resultMap>
+
+    <select id="selectUserDetail" resultMap="UserShowDetailMap">
+        SELECT s.id, s.title, s.category, s.cover_url, s.detail, s.guide, s.status,
+               (SELECT MIN(tc.price) FROM ticket_category tc WHERE tc.show_id = s.id) AS minPrice,
+               (SELECT MAX(tc.price) FROM ticket_category tc WHERE tc.show_id = s.id) AS maxPrice,
+               v.name AS venueName, v.city AS venueCity, v.address AS venueAddress
+        FROM show_info s
+        LEFT JOIN venue v ON s.venue_id = v.id
+        WHERE s.id = #{id} AND s.status NOT IN (0, 1, 2)
+    </select>
 
 </mapper>

@@ -34,7 +34,7 @@ public class ShowInfo implements Serializable {
 
     private String title;
 
-    private String category;
+    private Integer category;
 
     private String coverUrl;
 

@@ -21,6 +21,16 @@ public enum ShowStatus {
     private final int code;
     private final String desc;
 
+    /** 用户端文案（面向 C 端：3 审核通过 → 即将开售） */
+    public String getUserDesc() {
+        return switch (this) {
+            case APPROVED -> "即将开售";
+            case ON_SALE -> "销售中";
+            case ENDED -> "已结束";
+            default -> desc;
+        };
+    }
+
     /**
      * 按数据库存储的数字反查枚举，未匹配返回 null
      */

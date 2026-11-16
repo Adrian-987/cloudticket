@@ -25,7 +25,8 @@ public class ShowMerchantDetailVO {
 
     private String title;
 
-    private String category;          // 分类
+    private Integer category;         // 分类 code（1演唱会 2话剧 3音乐会 4脱口秀 5音乐节 6其他）
+    private String categoryDesc;      // 分类文案
 
     private String coverUrl;          // 封面
 

@@ -16,7 +16,8 @@ public class ShowAuditDetailVO {
     private Long id;
     private String title;
     private String merchantName;
-    private String category;
+    private Integer category;
+    private String categoryDesc;
     private String detail;        // 富文本（按 06 的详情字段来）
     private String guide;
     private String coverUrl;

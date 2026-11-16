@@ -14,7 +14,8 @@ import java.time.LocalDateTime;
 public class ShowAdminVO {
     private Long id;
     private String title;
-    private String category;
+    private Integer category;
+    private String categoryDesc;
     private String merchantName;
     private String statusDesc;
     private Integer status;

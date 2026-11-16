@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cloudticket.mapper.TicketMapper">
+
+
+    <select id="selectUserStock" resultType="com.cloudticket.pojo.vo.CategoryRemainVO">
+        SELECT tc.id, tc.name, tc.price, tc.limit_per_user,
+        IFNULL(scs.stock, 0) - IFNULL(scs.sold_count, 0) AS remainStock,
+        IFNULL(scs.member_stock, 0) - IFNULL(scs.sold_member_count, 0) AS memberRemainStock
+        FROM ticket_category tc
+        LEFT JOIN session_category_stock scs
+        ON scs.category_id = tc.id AND scs.session_id = #{sessionId}
+        WHERE tc.show_id = #{showId}
+    </select>
+</mapper>

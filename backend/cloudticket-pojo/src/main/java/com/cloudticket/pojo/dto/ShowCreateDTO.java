@@ -26,9 +26,8 @@ public class ShowCreateDTO {
     @Size(min = 2, max = 128, message = "标题需 2~128 字")
     private String title;
 
-    @NotBlank(message = "分类不能为空")
-    @Size(max = 50, message = "分类最多 50 字")
-    private String category;
+    @NotNull(message = "分类不能为空")
+    private Integer category;
 
     @NotNull(message = "场馆不能为空")
     private Long venueId;
