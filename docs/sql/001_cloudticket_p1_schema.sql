@@ -99,7 +99,7 @@ CREATE TABLE `show_info` (
     `merchant_id` BIGINT       NOT NULL                COMMENT '主办方 id [落位:@DataScope 数据权限]',
     `venue_id`    BIGINT       NOT NULL                COMMENT '场馆 id',
     `title`       VARCHAR(128) NOT NULL                COMMENT '演出标题',
-    `category`    VARCHAR(32)  NOT NULL                COMMENT '分类：演唱会/话剧/音乐会/脱口秀…',
+    `category`    TINYINT      NOT NULL                COMMENT '分类：1演唱会 2话剧 3音乐会 4脱口秀 5音乐节 6其他',
     `cover_url`   VARCHAR(255) NULL                    COMMENT '封面图（OSS）',
     `detail`      TEXT         NULL                    COMMENT '图文详情（富文本）',
     `guide`       VARCHAR(1024) NULL                   COMMENT '观演指南（入场证件/开场时间/交通指引）',
