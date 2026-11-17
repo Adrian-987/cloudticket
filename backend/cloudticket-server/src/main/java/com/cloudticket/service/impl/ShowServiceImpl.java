@@ -14,7 +14,7 @@ import com.cloudticket.mapper.AuditLogMapper;
 import com.cloudticket.mapper.SessionMapper;
 import com.cloudticket.mapper.ShowInfoMapper;
 import com.cloudticket.mapper.StockMapper;
-import com.cloudticket.mapper.TicketMapper;
+import com.cloudticket.mapper.TicketCategoryMapper;
 import com.cloudticket.pojo.dto.*;
 import com.cloudticket.pojo.entity.*;
 import com.cloudticket.pojo.enums.SessionStatus;
@@ -42,7 +42,7 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
     SessionMapper sessionMapper;
 
     @Autowired
-    TicketMapper ticketMapper;
+    TicketCategoryMapper ticketCategoryMapper;
 
     @Autowired
     StockMapper stockMapper;
@@ -152,7 +152,7 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
             stockMapper.delete(new LambdaQueryWrapper<SessionCategoryStock>()
                     .in(SessionCategoryStock::getSessionId, oldSessionIds));
         }
-        ticketMapper.delete(new LambdaQueryWrapper<TicketCategory>().eq(TicketCategory::getShowId, id));
+        ticketCategoryMapper.delete(new LambdaQueryWrapper<TicketCategory>().eq(TicketCategory::getShowId, id));
         sessionMapper.delete(new LambdaQueryWrapper<ShowSession>().eq(ShowSession::getShowId, id));
 
         // 更新 show_info（只更新，不新增；status 保持不变）
@@ -258,7 +258,7 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
         sessionStockVO.setSessionId(sessionId);
         sessionStockVO.setStatus(status);
         sessionStockVO.setStatusDesc(SessionStatus.of(status).getDesc());
-        List<CategoryRemainVO> list = ticketMapper.selectUserStock(sessionId, showId);
+        List<CategoryRemainVO> list = ticketCategoryMapper.selectUserStock(sessionId, showId);
         // 契约 4.4：场次非"销售中"时结构正常返回，余量字段置 0（前端据 status 置灰面板）
         if (status != SessionStatus.ON_SALE.getCode()) {
             list.forEach(c -> {
@@ -388,7 +388,7 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
                         .orderByAsc(ShowSession::getSessionTime));
 
         // ② 票档定义：演出级，全场次共用（按 id 升序）
-        List<TicketCategory> categories = ticketMapper.selectList(
+        List<TicketCategory> categories = ticketCategoryMapper.selectList(
                 new LambdaQueryWrapper<TicketCategory>()
                         .eq(TicketCategory::getShowId, showId)
                         .orderByAsc(TicketCategory::getId));
@@ -433,7 +433,7 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
             tc.setShowId(showId);
             return tc;
         }).toList();
-        categories.forEach(ticketMapper::insert);
+        categories.forEach(ticketCategoryMapper::insert);
 
         // 场次
         List<ShowSession> sessions = showCreateDTO.getSessions().stream().map(s -> {

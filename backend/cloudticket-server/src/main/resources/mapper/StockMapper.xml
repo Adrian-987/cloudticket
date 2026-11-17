@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cloudticket.mapper.StockMapper">
+
+    <update id="saveCount">
+        UPDATE session_category_stock
+        SET sold_count = sold_count + #{size}
+        WHERE session_id = #{sessionId} AND category_id = #{categoryId}
+        AND stock - sold_count >= #{size}
+    </update>
+    <update id="cancelCount">
+        UPDATE session_category_stock
+        SET sold_count = sold_count - #{cnt}
+        WHERE session_id = #{sessionId} AND category_id = #{categoryId}
+        AND sold_count >= #{cnt}
+    </update>
+</mapper>

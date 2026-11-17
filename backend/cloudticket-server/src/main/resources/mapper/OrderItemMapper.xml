@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cloudticket.mapper.OrderItemMapper">
+
+    <select id="selectCounts" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM order_item oi
+        JOIN orders o ON o.id = oi.order_id
+        WHERE o.session_id = #{sessionId}
+        AND oi.id_card_no IN
+        <foreach collection="idCards" separator="," item="attendeeId" open="(" close=")">
+            #{attendeeId}
+        </foreach>
+        AND o.status NOT IN (5, 7)
+    </select>
+    <select id="selectHistoryCount" resultType="com.cloudticket.pojo.vo.CategoryCountVO">
+        SELECT oi.category_id as categoryId, COUNT(*) AS cnt
+        FROM order_item oi
+        JOIN orders o ON o.id = oi.order_id
+        WHERE o.user_id = #{currentId}
+        AND o.session_id = #{sessionId}
+        AND oi.category_id IN
+        <foreach collection="categoryIds" item="categoryId" close=")" open="(" separator=",">
+            #{categoryId}
+        </foreach>
+        AND o.status NOT IN (5, 7)
+        GROUP BY oi.category_id
+    </select>
+    <select id="selectCount1" resultType="com.cloudticket.pojo.vo.CategoryCountVO">
+        SELECT category_id, COUNT(*) AS cnt
+        FROM order_item
+        WHERE order_id = #{orderId}
+        GROUP BY category_id
+    </select>
+</mapper>

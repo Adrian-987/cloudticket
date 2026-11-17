@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cloudticket.mapper.OrderMapper">
+
+
+    <select id="selectUserOrderPage" resultType="com.cloudticket.pojo.vo.UserOrderVO">
+        SELECT o.id            AS orderId,
+        o.order_no      AS orderNo,
+        si.title        AS showTitle,
+        ss.session_time AS sessionTime,
+        o.pay_amount    AS payAmount,
+        o.status        AS status,
+        o.expire_time   AS expireTime,
+        o.create_time   AS createTime
+        FROM orders o
+        LEFT JOIN show_info    si ON si.id = o.show_id
+        LEFT JOIN show_session ss ON ss.id = o.session_id
+        WHERE o.user_id = #{userId}
+        <if test="status != null">
+            AND o.status = #{status}
+        </if>
+        ORDER BY o.id DESC
+    </select>
+
+    <!-- 订单详情主查询：订单 + 演出 + 场次（全一对一），归属校验 user_id -->
+    <select id="selectUserOrderDetail" resultType="com.cloudticket.pojo.vo.UserOrderDetailVO">
+        SELECT o.id            AS orderId,
+               o.order_no      AS orderNo,
+               si.title        AS showTitle,
+               ss.session_name AS sessionName,
+               ss.session_time AS sessionTime,
+               o.amount        AS amount,
+               o.pay_amount    AS payAmount,
+               o.status        AS status,
+               o.expire_time   AS expireTime,
+               o.pay_time      AS payTime
+        FROM orders o
+        LEFT JOIN show_info    si ON si.id = o.show_id
+        LEFT JOIN show_session ss ON ss.id = o.session_id
+        WHERE o.id = #{orderId} AND o.user_id = #{userId}
+    </select>
+</mapper>
