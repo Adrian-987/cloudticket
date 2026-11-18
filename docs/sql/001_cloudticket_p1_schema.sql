@@ -255,6 +255,7 @@ CREATE TABLE `ticket` (
     `user_id`       BIGINT      NOT NULL                COMMENT '持有人（下单账号，票夹归属）',
     `session_id`    BIGINT      NOT NULL                COMMENT '场次 id',
     `category_id`   BIGINT      NOT NULL                COMMENT '票档 id',
+    `price`         DECIMAL(10, 2) NOT NULL DEFAULT 0   COMMENT '票价快照（出票时从订单项复制，改价不影响历史票）',
     `attendee_name` VARCHAR(50) NOT NULL                COMMENT '观演人姓名快照（出票时从票位复制）',
     `id_card_no`    VARCHAR(32) NOT NULL                COMMENT '证件号快照 [落位:人证合一核验]',
     `status`        TINYINT     NOT NULL DEFAULT 1      COMMENT '状态：1有效 2已核销 3已退款 4已作废 [落位:核销CAS幂等]',

@@ -263,6 +263,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Orders> implement
                     .userId(order.getUserId())
                     .sessionId(order.getSessionId())
                     .categoryId(item.getCategoryId())
+                    .price(item.getUnitPrice())
                     .attendeeName(item.getAttendeeName())
                     .idCardNo(item.getIdCardNo())
                     .status(TicketStatus.VALID.getCode())

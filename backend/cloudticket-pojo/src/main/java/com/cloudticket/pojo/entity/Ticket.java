@@ -11,6 +11,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -37,6 +38,9 @@ public class Ticket implements Serializable {
     private Long sessionId;
 
     private Long categoryId;
+
+    /** 票价快照（出票时从 order_item.unit_price 复制，改价不影响历史票） */
+    private BigDecimal price;
 
     private String attendeeName;
 
