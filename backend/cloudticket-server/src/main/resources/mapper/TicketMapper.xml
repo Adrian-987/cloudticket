@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.cloudticket.mapper.TicketMapper">
+
+    <!-- 票夹分页：票 + 场次 + 演出 + 票档（全一对一），用户维度 + 可选状态筛选 -->
+    <select id="selectUserTicketPage" resultType="com.cloudticket.pojo.vo.UserTicketPageVO">
+        SELECT t.id            AS ticketId,
+               t.ticket_no     AS ticketNo,
+               si.title        AS showTitle,
+               ss.session_name AS sessionName,
+               ss.session_time AS sessionTime,
+               tc.name         AS categoryName,
+               t.price         AS price,
+               t.status        AS status,
+               t.check_time    AS checkTime
+        FROM ticket t
+        LEFT JOIN show_session    ss ON ss.id = t.session_id
+        LEFT JOIN show_info       si ON si.id = ss.show_id
+        LEFT JOIN ticket_category tc ON tc.id = t.category_id
+        WHERE t.user_id = #{userId}
+        <if test="status != null">
+            AND t.status = #{status}
+        </if>
+        ORDER BY t.id DESC
+    </select>
+</mapper>
