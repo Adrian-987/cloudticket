@@ -8,6 +8,8 @@ import com.cloudticket.common.constant.AuditConstant;
 import com.cloudticket.common.context.BaseContext;
 import com.cloudticket.common.exception.BaseException;
 import com.cloudticket.common.result.PageResult;
+import com.cloudticket.common.util.TicketCodeUtil;
+import com.cloudticket.config.TicketCodeProperties;
 import com.cloudticket.mapper.TicketMapper;
 import com.cloudticket.pojo.dto.TicketCheckDTO;
 import com.cloudticket.pojo.dto.MerchantTicketPageQuery;
@@ -30,11 +32,18 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Ticket> impleme
     @Autowired
     TicketMapper ticketMapper;
 
+    @Autowired
+    TicketCodeProperties ticketCodeProperties;
+
     @Override
     public PageResult<UserTicketPageVO> ticketUserPage(UserTicketPageQuery userTicketPageQuery) {
         Page<UserTicketPageVO> page = new Page<>(userTicketPageQuery.getPageNum(), userTicketPageQuery.getPageSize());
         baseMapper.selectUserTicketPage(page, BaseContext.getCurrentId(), userTicketPageQuery.getStatus());
-        page.getRecords().forEach(vo -> vo.setStatusDesc(TicketStatus.of(vo.getStatus()).getDesc()));
+        page.getRecords().forEach(vo -> {
+            vo.setStatusDesc(TicketStatus.of(vo.getStatus()).getDesc());
+            // 票码现算（P1 静态签名；P4 换动态串，此处契约不变）
+            vo.setTicketCode(TicketCodeUtil.sign(vo.getTicketNo(), ticketCodeProperties.getSecret()));
+        });
         return new PageResult<>((int) page.getTotal(), page.getRecords());
     }
 
@@ -43,11 +52,16 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Ticket> impleme
             targetType = AuditConstant.TARGET_TICKET,
             operatorType = AuditConstant.OPERATOR_MERCHANT)//审计字段
     public TicketCheckVO ticketCheck(TicketCheckDTO ticketCheckDTO) {
-        //1.校验是否又no传递
-        if (StrUtil.isBlank(ticketCheckDTO.getTicketNo())){
-            throw new BaseException("请输入票号用于查询");
+        //1.校验票码非空
+        if (StrUtil.isBlank(ticketCheckDTO.getTicketCode())){
+            throw new BaseException("请输入票码");
         }
-        CheckinResultBO checkinResultBO=ticketMapper.selectByNO(ticketCheckDTO.getTicketNo());
+        //2.验签：凭证串 → 裸票号（防伪造：无密钥算不出签名；防篡改：改票号即失败）
+        String ticketNo = TicketCodeUtil.verifyAndExtract(ticketCheckDTO.getTicketCode(), ticketCodeProperties.getSecret());
+        if (ticketNo == null) {
+            throw new BaseException("票码无效");
+        }
+        CheckinResultBO checkinResultBO=ticketMapper.selectByNO(ticketNo);
         //2.校验数据是够存在
         if (checkinResultBO==null){
             throw new BaseException("该票号不存在,请核对后再次尝试");
@@ -78,7 +92,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Ticket> impleme
         Boolean ok =lambdaUpdate().set(Ticket::getCheckTime,now)
                 .set(Ticket::getStatus,TicketStatus.CHECKED.getCode())
                 .eq(Ticket::getStatus,TicketStatus.VALID.getCode())
-                .eq(Ticket::getTicketNo,ticketCheckDTO.getTicketNo()).update();
+                .eq(Ticket::getTicketNo,ticketNo).update();
         if (!ok){
             throw new BaseException("该卷状态不可核销,请重新尝试");
         }

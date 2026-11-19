@@ -25,6 +25,8 @@ knife4j:
   enable: false
 
 cloudticket:
+  ticket:
+    secret: ${cloudticket.ticket.secret}   # 票码 HMAC-SHA256 密钥（≥32 字符，仅服务端持有）
   jwt:
     user:
       secret: ${cloudticket.jwt.user.secret}

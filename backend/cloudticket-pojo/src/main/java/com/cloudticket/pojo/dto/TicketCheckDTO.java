@@ -10,5 +10,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TicketCheckDTO {
-    private String ticketNo;
+    /** 票码凭证串（扫码得到或手动输入；格式 票号.HMAC签名） */
+    private String ticketCode;
 }

@@ -20,8 +20,11 @@ public class UserTicketPageVO {
 
     private Long ticketId;
 
-    /** 票号（P1 明文占位；P4 换动态票码） */
+    /** 票号（内部唯一标识，展示用） */
     private String ticketNo;
+
+    /** 票码凭证串（P1 静态签名 = 票号.HMAC；前端直接渲染二维码） */
+    private String ticketCode;
 
     private String showTitle;
 
