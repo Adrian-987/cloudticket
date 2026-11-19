@@ -7,6 +7,7 @@ import com.cloudticket.common.context.BaseContext;
 import com.cloudticket.common.exception.BaseException;
 import com.cloudticket.common.result.PageResult;
 import com.cloudticket.mapper.*;
+import com.cloudticket.pojo.dto.MerchantOrderPageQuery;
 import com.cloudticket.pojo.dto.OrderCreateDTO;
 import com.cloudticket.pojo.dto.OrderItemCreateDTO;
 import com.cloudticket.pojo.dto.UserOrderPageQuery;
@@ -16,12 +17,7 @@ import com.cloudticket.pojo.enums.PaymentStatus;
 import com.cloudticket.pojo.enums.SessionStatus;
 import com.cloudticket.pojo.enums.ShowStatus;
 import com.cloudticket.pojo.enums.TicketStatus;
-import com.cloudticket.pojo.vo.CategoryCountVO;
-import com.cloudticket.pojo.vo.UserCreateOrderVO;
-import com.cloudticket.pojo.vo.UserOrderDetailVO;
-import com.cloudticket.pojo.vo.UserOrderItemVO;
-import com.cloudticket.pojo.vo.UserOrderVO;
-import com.cloudticket.pojo.vo.UserTicketVO;
+import com.cloudticket.pojo.vo.*;
 import com.cloudticket.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -308,6 +304,25 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Orders> implement
     }
 
     @Override
+    public MerchantOrderDetailVO selectOrder(Long id) {
+        MerchantOrderDetailVO merchantOrderVO=orderMapper.selectMerchantOrder(id,BaseContext.getCurrentId());
+        if (merchantOrderVO == null) {
+            throw new BaseException("订单不存在");
+        }
+        merchantOrderVO.setStatusDesc(OrderStatus.of(merchantOrderVO.getStatus()).getDesc());
+        // 买家昵称脱敏（契约 8.3：买家信息脱敏）
+        if (merchantOrderVO.getBuyer() != null) {
+            merchantOrderVO.getBuyer().setNickname(maskNickname(merchantOrderVO.getBuyer().getNickname()));
+        }
+        List<MerchantTicketVO> merchantTickets=ticketMapper.selectMerchant(id,BaseContext.getCurrentId());
+        merchantTickets.forEach(t->{
+            t.setStatusDesc(TicketStatus.of(t.getStatus()).getDesc());
+        });
+        merchantOrderVO.setTickets(merchantTickets);
+        return merchantOrderVO;
+    }
+
+    @Override
     public UserOrderDetailVO orderDetail(Long orderId) {
         // ① 主查询（订单 + 演出 + 场次，一对一；归属校验）
         UserOrderDetailVO vo = orderMapper.selectUserOrderDetail(orderId, BaseContext.getCurrentId());
@@ -361,11 +376,31 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Orders> implement
     }
 
     /** 姓名脱敏：保留姓，其余变 *（张三 → 张*） */
+    /** 姓名脱敏：保留姓，其余变 *（张三 → 张*） */
     private String maskName(String name) {
         if (name == null || name.length() <= 1) {
             return name;
         }
         return name.charAt(0) + "*".repeat(name.length() - 1);
+    }
+
+    @Override
+    public PageResult<MerchantOrderVO> merchantOrderPage(MerchantOrderPageQuery query) {
+        Page<MerchantOrderVO> page = new Page<>(query.getPageNum(), query.getPageSize());
+        orderMapper.selectMerchantOrderPage(page, BaseContext.getCurrentId(), query);
+        page.getRecords().forEach(vo -> {
+            vo.setStatusDesc(OrderStatus.of(vo.getStatus()).getDesc());
+            vo.setBuyerNickname(maskNickname(vo.getBuyerNickname()));
+        });
+        return new PageResult<>((int) page.getTotal(), page.getRecords());
+    }
+
+    /** 昵称脱敏：保留首字 + ***（小星 → 小***） */
+    private String maskNickname(String nickname) {
+        if (nickname == null || nickname.isEmpty()) {
+            return nickname;
+        }
+        return nickname.charAt(0) + "***";
     }
 
     /** 订单号：yyyyMMddHHmmss + 6 位随机（uk_order_no 唯一索引兜底幂等） */

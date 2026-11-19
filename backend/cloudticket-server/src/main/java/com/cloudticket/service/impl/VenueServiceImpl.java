@@ -29,6 +29,9 @@ public class VenueServiceImpl extends ServiceImpl<VenueMapper, Venue>implements 
     @Autowired
     ShowInfoMapper showInfoMapper;
 
+    @Autowired
+    VenueMapper venueMapper;
+
     @Override
     public PageResult<VenueVO> venuePageQuery(AdminVenuePageQuery venuePageQuery) {
         Page<Venue> page=new Page<>(venuePageQuery.getPageNum(),venuePageQuery.getPageSize());
@@ -110,5 +113,19 @@ public class VenueServiceImpl extends ServiceImpl<VenueMapper, Venue>implements 
         Long count = showInfoMapper.selectCount(new LambdaQueryWrapper<ShowInfo>().eq(ShowInfo::getVenueId, id));
         venueInfoVO.setShowCount(count.intValue());
         return venueInfoVO;
+    }
+
+    @Override
+    public List<VenueVO> venueList(String city) {
+        List<Venue> list = venueMapper.selectList(
+                new LambdaQueryWrapper<Venue>()
+                        .eq(StrUtil.isNotBlank(city), Venue::getCity, city)   // 有值才拼 AND city=?
+                        .orderByDesc(Venue::getId));                          // 倒序
+
+        return list.stream().map(v -> {
+            VenueVO venueVO=new VenueVO();
+            BeanUtils.copyProperties(v,venueVO);
+            return venueVO;
+        }).toList();
     }
 }

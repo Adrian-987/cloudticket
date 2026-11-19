@@ -25,4 +25,41 @@
         </if>
         ORDER BY t.id DESC
     </select>
+    <select id="selectMerchant" resultType="com.cloudticket.pojo.vo.MerchantTicketVO">
+        SELECT t.ticket_no, t.attendee_name, t.status, tc.name AS categoryName, t.check_time
+        FROM ticket t
+        LEFT JOIN ticket_category tc ON tc.id = t.category_id
+        WHERE t.order_id = #{id}
+    </select>
+    <select id="selectByNO" resultType="com.cloudticket.pojo.vo.CheckinResultBO">
+        SELECT t.id AS ticketId,
+        t.status,
+        t.ticket_no AS ticketNo,
+        t.attendee_name AS attendeeName,
+        ss.session_time AS sessionTime,
+        ss.session_name AS sessionName,
+        si.merchant_id AS merchantId,
+        si.title AS showTitle,
+        tc.name AS categoryName
+        FROM ticket t
+        JOIN show_session ss ON ss.id = t.session_id
+        JOIN show_info    si ON si.id = ss.show_id
+        JOIN ticket_category tc ON tc.id = t.category_id
+        WHERE t.ticket_no = #{ticketNo}
+    </select>
+    <select id="ticketMerchantPage" resultType="com.cloudticket.pojo.vo.MerchantTicketPageVO">
+        SELECT t.ticket_no     AS ticketNo,
+        tc.name         AS categoryName,
+        t.check_time    AS checkTime
+        FROM ticket t
+        JOIN ticket_category tc ON tc.id = t.category_id
+        JOIN show_session    ss ON ss.id = t.session_id
+        JOIN show_info       si ON si.id = ss.show_id
+        WHERE si.merchant_id = #{merchantId}
+        AND t.status = 2                          <!-- 只查已核销 -->
+        <if test="sessionId != null">
+            AND t.session_id = #{sessionId}
+        </if>
+        ORDER BY t.check_time DESC
+    </select>
 </mapper>

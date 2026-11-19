@@ -9,6 +9,8 @@ import com.cloudticket.pojo.vo.IdVO;
 import com.cloudticket.pojo.vo.AdminVenueVO;
 import com.cloudticket.pojo.vo.VenueVO;
 
+import java.util.List;
+
 public interface VenueService extends IService<Venue> {
     PageResult<VenueVO> venuePageQuery(AdminVenuePageQuery venuePageQuery);
 
@@ -19,4 +21,6 @@ public interface VenueService extends IService<Venue> {
     void venueDelete(Long id);
 
     AdminVenueVO venueInfo(Long id);
+
+    List<VenueVO> venueList(String city);
 }
