@@ -27,4 +27,10 @@ public interface ShowInfoMapper extends BaseMapper<ShowInfo> {
 
     /** 用户端演出详情（静态：演出 + 场馆 + 价格区间；场次由 Service 另查） */
     UserShowDetailVO selectUserDetail(@Param("id") Long id);
+
+    /** 开售流转③：有场次销售中 → 销售中（3→4） */
+    int startSale();
+
+    /** 开售流转④：所有场次都结束 → 已结束（4→5） */
+    int endShow();
 }

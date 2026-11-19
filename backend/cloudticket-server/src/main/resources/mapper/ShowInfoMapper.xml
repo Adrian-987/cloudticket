@@ -85,4 +85,19 @@
         WHERE s.id = #{id} AND s.status NOT IN (0, 1, 2)
     </select>
 
+    <!-- ③ 有场次销售中 → 销售中（3 审核通过 → 4 销售中） -->
+    <update id="startSale">
+        UPDATE show_info s SET s.status = 4
+        WHERE s.status = 3
+          AND EXISTS (SELECT 1 FROM show_session ss
+                      WHERE ss.show_id = s.id AND ss.status = 1)
+    </update>
+
+    <!-- ④ 所有场次都结束 → 已结束（4 销售中 → 5 已结束） -->
+    <update id="endShow">
+        UPDATE show_info s SET s.status = 5
+        WHERE s.status = 4
+          AND NOT EXISTS (SELECT 1 FROM show_session ss
+                          WHERE ss.show_id = s.id AND ss.session_time &gt; NOW())
+    </update>
 </mapper>
