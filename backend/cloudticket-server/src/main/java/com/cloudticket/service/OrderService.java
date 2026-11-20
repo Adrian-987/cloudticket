@@ -3,15 +3,9 @@ package com.cloudticket.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.cloudticket.common.result.PageResult;
-import com.cloudticket.pojo.dto.MerchantOrderPageQuery;
-import com.cloudticket.pojo.dto.OrderCreateDTO;
-import com.cloudticket.pojo.dto.UserOrderPageQuery;
+import com.cloudticket.pojo.dto.*;
 import com.cloudticket.pojo.entity.Orders;
-import com.cloudticket.pojo.vo.MerchantOrderDetailVO;
-import com.cloudticket.pojo.vo.MerchantOrderVO;
-import com.cloudticket.pojo.vo.UserCreateOrderVO;
-import com.cloudticket.pojo.vo.UserOrderDetailVO;
-import com.cloudticket.pojo.vo.UserOrderVO;
+import com.cloudticket.pojo.vo.*;
 import jakarta.validation.Valid;
 
 public interface OrderService extends IService<Orders> {
@@ -30,4 +24,8 @@ public interface OrderService extends IService<Orders> {
     void orderCancel(Long id);
 
     MerchantOrderDetailVO selectOrder(Long id);
+
+    PageResult<AdminVipOrderVO> vipOrderPage(OrderVipPageQuery orderVipPageQuery);
+
+    UserCreateVipVO userVipCreate(UserVipCreateDTO userVipCreateDTO);
 }

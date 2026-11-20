@@ -1,24 +1,20 @@
 package com.cloudticket.service.impl;
 
+import cn.hutool.db.sql.Order;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.cloudticket.common.context.BaseContext;
 import com.cloudticket.common.exception.BaseException;
 import com.cloudticket.common.result.PageResult;
 import com.cloudticket.mapper.*;
-import com.cloudticket.pojo.dto.MerchantOrderPageQuery;
-import com.cloudticket.pojo.dto.OrderCreateDTO;
-import com.cloudticket.pojo.dto.OrderItemCreateDTO;
-import com.cloudticket.pojo.dto.UserOrderPageQuery;
+import com.cloudticket.pojo.dto.*;
 import com.cloudticket.pojo.entity.*;
-import com.cloudticket.pojo.enums.OrderStatus;
-import com.cloudticket.pojo.enums.PaymentStatus;
-import com.cloudticket.pojo.enums.SessionStatus;
-import com.cloudticket.pojo.enums.ShowStatus;
-import com.cloudticket.pojo.enums.TicketStatus;
+import com.cloudticket.pojo.enums.*;
 import com.cloudticket.pojo.vo.*;
 import com.cloudticket.service.OrderService;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,6 +58,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Orders> implement
 
     @Autowired
     PaymentMapper paymentMapper;
+
+    @Autowired
+    UserMapper userMapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -249,7 +248,25 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Orders> implement
                 .callbackTime(LocalDateTime.now())
                 .callbackBody("MOCK PAY").build();
         paymentMapper.insert(mockPay);
-        //3.创建票次
+        //3.VIP 虚拟订单：直接完成 + 会员生效（不走出票）
+        if (order.getOrderType() != null && order.getOrderType() == OrderType.VIP.getCode()) {
+            lambdaUpdate().set(Orders::getStatus, OrderStatus.FINISHED.getCode())
+                    .eq(Orders::getId, order.getId()).update();
+
+            VipPlanStatus plan = VipPlanStatus.of(order.getVipPlanCode());
+            if (plan == null) {
+                throw new BaseException("会员档位不存在");
+            }
+            User user = userMapper.selectById(order.getUserId());
+            LocalDateTime nowTime = LocalDateTime.now();
+            LocalDateTime base = (user.getVipExpireTime() != null && user.getVipExpireTime().isAfter(nowTime))
+                    ? user.getVipExpireTime() : nowTime;
+            user.setVipLevel(1);
+            user.setVipExpireTime(base.plusMonths(plan.getMonths()));
+            userMapper.updateById(user);
+            return;
+        }
+        //4.创建票次
         List<OrderItem> items = orderItemMapper
                 .selectList(new LambdaQueryWrapper<OrderItem>().eq(OrderItem::getOrderId,order.getId()));
         for (OrderItem item : items) {
@@ -323,6 +340,46 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Orders> implement
     }
 
     @Override
+    public PageResult<AdminVipOrderVO> vipOrderPage(OrderVipPageQuery orderVipPageQuery) {
+        Page<AdminVipOrderVO> page = new Page<>(orderVipPageQuery.getPageNum(), orderVipPageQuery.getPageSize());
+        IPage<AdminVipOrderVO> result = orderMapper.selectAdminVip(page, orderVipPageQuery);
+        result.getRecords().forEach(vo -> {
+            vo.setStatusDesc(OrderStatus.of(vo.getStatus()).getDesc());
+            VipPlanStatus plan = VipPlanStatus.of(vo.getVipPlanCode());
+            if (plan != null) {
+                vo.setPlanName(plan.getPlanName());
+                vo.setMonths(plan.getMonths());
+            }
+            vo.setPhone(maskPhone(vo.getPhone()));
+        });
+        return new PageResult<>((int) result.getTotal(), result.getRecords());
+    }
+
+    @Override
+    public UserCreateVipVO userVipCreate(UserVipCreateDTO userVipCreateDTO) {
+        VipPlanStatus status = VipPlanStatus.of(userVipCreateDTO.getPlanCode());
+        if (status == null) {
+            throw new BaseException("会员档位不存在");
+        }
+        Orders orders= Orders.builder()
+                .orderNo(generateOrderNo())
+                .userId(BaseContext.getCurrentId())
+                .orderType(OrderType.VIP.getCode())
+                .poolType(PoolType.PUBLIC.getCode())
+                .amount(status.getPrice())
+                .payAmount(status.getPrice())
+                .vipPlanCode(userVipCreateDTO.getPlanCode())
+                .status(OrderStatus.WAIT_PAY.getCode())
+                .expireTime(LocalDateTime.now().plusMinutes(15))
+                .build();
+        orderMapper.insert(orders);
+        UserCreateVipVO userCreateVipVO=new UserCreateVipVO();
+        BeanUtils.copyProperties(orders,userCreateVipVO);
+        userCreateVipVO.setOrderId(orders.getId());
+        return userCreateVipVO;
+    }
+
+    @Override
     public UserOrderDetailVO orderDetail(Long orderId) {
         // ① 主查询（订单 + 演出 + 场次，一对一；归属校验）
         UserOrderDetailVO vo = orderMapper.selectUserOrderDetail(orderId, BaseContext.getCurrentId());
@@ -355,7 +412,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Orders> implement
                         .toList();
                 return UserOrderItemVO.builder()
                         .categoryName(category == null ? null : category.getName())
-                        .unitPrice(list.get(0).getUnitPrice())
+                        .unitPrice(list.getFirst().getUnitPrice())
                         .quantity(list.size())
                         .attendeeNames(list2)
                         .build();
@@ -375,7 +432,6 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Orders> implement
         return vo;
     }
 
-    /** 姓名脱敏：保留姓，其余变 *（张三 → 张*） */
     /** 姓名脱敏：保留姓，其余变 *（张三 → 张*） */
     private String maskName(String name) {
         if (name == null || name.length() <= 1) {
@@ -401,6 +457,14 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Orders> implement
             return nickname;
         }
         return nickname.charAt(0) + "***";
+    }
+
+    /** 手机号脱敏：138****1234 */
+    private String maskPhone(String phone) {
+        if (phone == null || phone.length() < 7) {
+            return phone;
+        }
+        return phone.substring(0, 3) + "****" + phone.substring(phone.length() - 4);
     }
 
     /** 订单号：yyyyMMddHHmmss + 6 位随机（uk_order_no 唯一索引兜底幂等） */

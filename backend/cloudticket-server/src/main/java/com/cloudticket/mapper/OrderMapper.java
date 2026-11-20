@@ -4,11 +4,9 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.cloudticket.pojo.dto.MerchantOrderPageQuery;
+import com.cloudticket.pojo.dto.OrderVipPageQuery;
 import com.cloudticket.pojo.entity.Orders;
-import com.cloudticket.pojo.vo.MerchantOrderDetailVO;
-import com.cloudticket.pojo.vo.MerchantOrderVO;
-import com.cloudticket.pojo.vo.UserOrderDetailVO;
-import com.cloudticket.pojo.vo.UserOrderVO;
+import com.cloudticket.pojo.vo.*;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -31,4 +29,7 @@ public interface OrderMapper extends BaseMapper<Orders> {
 
     /** 主办方订单详情主查询（平铺 buyer 列 → resultMap association 映射） */
     MerchantOrderDetailVO selectMerchantOrder(@Param("id") Long id, @Param("merchantId") Long merchantId);
+
+    /** 平台端 VIP 订单分页（返回 IPage，否则 MP 只填 total、rows 为空） */
+    IPage<AdminVipOrderVO> selectAdminVip(Page<AdminVipOrderVO> page, @Param("q") OrderVipPageQuery q);
 }

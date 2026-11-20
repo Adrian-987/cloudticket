@@ -3,6 +3,8 @@ package com.cloudticket.service.impl;
 
 import cn.hutool.core.util.DesensitizedUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.db.sql.Order;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.cloudticket.annotation.Audit;
@@ -13,17 +15,16 @@ import com.cloudticket.common.result.PageResult;
 import com.cloudticket.common.util.JwtUtil;
 import com.cloudticket.common.util.PasswordUtil;
 import com.cloudticket.config.JwtProperties;
+import com.cloudticket.mapper.OrderMapper;
 import com.cloudticket.mapper.UserMapper;
 import com.cloudticket.pojo.dto.UserLoginDTO;
 import com.cloudticket.pojo.dto.AdminUserPageQuery;
 import com.cloudticket.pojo.dto.UserRegisterDTO;
+import com.cloudticket.pojo.dto.UserVipCreateDTO;
 import com.cloudticket.pojo.entity.Merchant;
-import com.cloudticket.pojo.enums.EnableStatus;
-import com.cloudticket.pojo.enums.MerchantStatus;
-import com.cloudticket.pojo.vo.AdminUserVO;
-import com.cloudticket.pojo.vo.UserInfoVO;
-import com.cloudticket.pojo.vo.UserLoginVO;
-import com.cloudticket.pojo.vo.UserRegisterVO;
+import com.cloudticket.pojo.entity.Orders;
+import com.cloudticket.pojo.enums.*;
+import com.cloudticket.pojo.vo.*;
 import com.cloudticket.pojo.entity.User;
 import com.cloudticket.service.UserService;
 import org.springframework.beans.BeanUtils;
@@ -31,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +42,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Autowired
     private  JwtProperties jwtProperties;
+
+    @Autowired
+    private UserMapper userMapper;
+
+    @Autowired
+    OrderMapper orderMapper;
 
     @Override
     public UserRegisterVO userRegister(UserRegisterDTO userRegisterDTO) {
@@ -181,6 +189,30 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BaseException("该用户已启用");
         }
         throw new BaseException("当前状态不可禁用");
+    }
+
+    @Override
+    public UserVipVO userVip() {
+        User user = userMapper.selectOne(new LambdaQueryWrapper<User>()
+                .select(User::getVipLevel, User::getVipExpireTime)   // ← 只查两列
+                .eq(User::getId, BaseContext.getCurrentId()));
+
+        if (user == null) {
+            throw new BaseException("用户不存在");
+        }
+
+        boolean isVip =( user.getVipLevel() != null
+                && user.getVipLevel() == 1)
+                && (user.getVipExpireTime() != null
+                && user.getVipExpireTime().isAfter(LocalDateTime.now()));
+
+        return UserVipVO.builder()
+                .vipLevel(user.getVipLevel())
+                .vipExpireTime(user.getVipExpireTime())
+                .isVip(isVip)
+                .plans(VipPlanVO.ALL)          // 静态常量，零查询
+                .build();
+
     }
 
 }

@@ -5,10 +5,8 @@ import com.cloudticket.common.result.PageResult;
 import com.cloudticket.pojo.dto.UserLoginDTO;
 import com.cloudticket.pojo.dto.AdminUserPageQuery;
 import com.cloudticket.pojo.dto.UserRegisterDTO;
-import com.cloudticket.pojo.vo.AdminUserVO;
-import com.cloudticket.pojo.vo.UserInfoVO;
-import com.cloudticket.pojo.vo.UserLoginVO;
-import com.cloudticket.pojo.vo.UserRegisterVO;
+import com.cloudticket.pojo.dto.UserVipCreateDTO;
+import com.cloudticket.pojo.vo.*;
 import com.cloudticket.pojo.entity.User;
 
 
@@ -25,4 +23,7 @@ public interface UserService extends IService<User> {
     void userUnable(Long id);
 
     void userEnable(Long id);
+
+    UserVipVO userVip();
+
 }

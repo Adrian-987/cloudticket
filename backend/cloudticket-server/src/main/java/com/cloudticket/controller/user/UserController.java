@@ -3,6 +3,7 @@ package com.cloudticket.controller.user;
 import com.cloudticket.common.result.Result;
 import com.cloudticket.pojo.dto.UserLoginDTO;
 import com.cloudticket.pojo.dto.UserRegisterDTO;
+import com.cloudticket.pojo.dto.UserVipCreateDTO;
 import com.cloudticket.pojo.vo.*;
 import com.cloudticket.service.UserService;
 import jakarta.validation.Valid;
@@ -33,5 +34,12 @@ public class UserController {
         UserInfoVO userInfoVO=userService.userInfo();
         return Result.success(userInfoVO);
     }
+
+    @GetMapping("/vip")
+    public Result<UserVipVO> userVip(){
+        UserVipVO userVipVO=userService.userVip();
+        return Result.success(userVipVO);
+    }
+
 
 }

@@ -41,6 +41,9 @@ public class Orders implements Serializable {
 
     private Integer orderType;
 
+    /** 会员档位快照（MONTH/YEAR，仅 orderType=2 会员订单有值） */
+    private String vipPlanCode;
+
     private Integer poolType;
 
     private BigDecimal amount;

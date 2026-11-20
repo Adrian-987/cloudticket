@@ -4,7 +4,9 @@ import com.cloudticket.common.result.PageResult;
 import com.cloudticket.common.result.Result;
 import com.cloudticket.pojo.dto.OrderCreateDTO;
 import com.cloudticket.pojo.dto.UserOrderPageQuery;
+import com.cloudticket.pojo.dto.UserVipCreateDTO;
 import com.cloudticket.pojo.vo.UserCreateOrderVO;
+import com.cloudticket.pojo.vo.UserCreateVipVO;
 import com.cloudticket.pojo.vo.UserOrderDetailVO;
 import com.cloudticket.pojo.vo.UserOrderVO;
 import com.cloudticket.service.OrderService;
@@ -47,5 +49,11 @@ public class UserOrderController {
     public Result orderCancel(@PathVariable Long id){
         orderService.orderCancel(id);
         return Result.success();
+    }
+
+    @PostMapping("/vip/orders")
+    public Result<UserCreateVipVO> userVipCreate(@RequestBody UserVipCreateDTO userVipCreateDTO){
+        UserCreateVipVO userCreateVipVO=orderService.userVipCreate(userVipCreateDTO);
+        return Result.success(userCreateVipVO);
     }
 }

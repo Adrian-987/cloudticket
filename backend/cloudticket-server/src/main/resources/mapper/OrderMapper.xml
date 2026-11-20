@@ -99,4 +99,31 @@
         LEFT JOIN `user`       u  ON u.id  = o.user_id
         WHERE o.id = #{id} AND o.merchant_id = #{merchantId}
     </select>
+    <select id="selectAdminVip" resultType="com.cloudticket.pojo.vo.AdminVipOrderVO">
+        SELECT o.id     AS orderId,
+        o.order_no      AS orderNo,
+        o.user_id       AS userId,
+        u.phone         AS phone,
+        u.nickname      AS nickname,
+        o.vip_plan_code AS vipPlanCode,
+        o.pay_amount    AS amount,
+        o.status        AS status,
+        o.create_time   AS createTime,
+        o.pay_time      AS payTime
+        FROM orders o
+        LEFT JOIN `user` u ON u.id = o.user_id
+        WHERE o.order_type = 2
+        <if test="q.status != null">
+            AND o.status = #{q.status}
+        </if>
+        <if test="q.planCode != null">
+            AND o.vip_plan_code = #{q.planCode}
+        </if>
+        <if test="q.phone != null">
+            AND u.phone = #{q.phone}
+        </if>
+        ORDER BY o.id DESC
+
+    </select>
+
 </mapper>
