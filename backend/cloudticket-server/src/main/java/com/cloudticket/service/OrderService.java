@@ -2,6 +2,7 @@ package com.cloudticket.service;
 
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.cloudticket.common.result.CursorPageResult;
 import com.cloudticket.common.result.PageResult;
 import com.cloudticket.pojo.dto.*;
 import com.cloudticket.pojo.entity.Orders;
@@ -13,7 +14,7 @@ public interface OrderService extends IService<Orders> {
 
     void orderPay(String orderNo);
 
-    PageResult<UserOrderVO> orderUserPage(UserOrderPageQuery userOrderPageQuery);
+    CursorPageResult<UserOrderVO> orderUserPage(UserOrderPageQuery userOrderPageQuery);
 
     /** 订单详情（明细按票档聚合 + 票列表） */
     UserOrderDetailVO orderDetail(Long orderId);

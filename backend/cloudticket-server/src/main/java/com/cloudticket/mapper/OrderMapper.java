@@ -3,6 +3,7 @@ package com.cloudticket.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.cloudticket.common.result.CursorPageResult;
 import com.cloudticket.pojo.dto.MerchantOrderPageQuery;
 import com.cloudticket.pojo.dto.OrderVipPageQuery;
 import com.cloudticket.pojo.entity.Orders;
@@ -10,13 +11,17 @@ import com.cloudticket.pojo.vo.*;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 @Mapper
 public interface OrderMapper extends BaseMapper<Orders> {
 
     /** 我的订单分页（用户维度 + 可选状态筛选） */
-    IPage<UserOrderVO> selectUserOrderPage(Page<UserOrderVO> page,
-                                           @Param("userId") Long userId,
-                                           @Param("status") Integer status);
+    /** 我的订单（游标分页：WHERE id &lt; cursor + LIMIT limit+1，多查 1 条判断 hasMore） */
+    List<UserOrderVO> selectUserOrderPage(@Param("userId") Long userId,
+                                          @Param("status") Integer status,
+                                          @Param("cursor") Long cursor,
+                                          @Param("limit") Integer limit);
 
     /** 订单详情主查询（订单 + 演出 + 场次，一对一；归属校验 user_id） */
     UserOrderDetailVO selectUserOrderDetail(@Param("orderId") Long orderId,

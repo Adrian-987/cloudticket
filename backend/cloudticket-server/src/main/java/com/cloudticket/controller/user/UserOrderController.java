@@ -1,5 +1,6 @@
 package com.cloudticket.controller.user;
 
+import com.cloudticket.common.result.CursorPageResult;
 import com.cloudticket.common.result.PageResult;
 import com.cloudticket.common.result.Result;
 import com.cloudticket.pojo.dto.OrderCreateDTO;
@@ -34,9 +35,8 @@ public class UserOrderController {
     }
 
     @GetMapping("/orders/page")
-    public Result<PageResult<UserOrderVO>> orderPage(UserOrderPageQuery userOrderPageQuery){
-        PageResult<UserOrderVO> pageResult = orderService.orderUserPage(userOrderPageQuery);
-        return Result.success(pageResult);
+    public Result<CursorPageResult<UserOrderVO>> orderPage(UserOrderPageQuery userOrderPageQuery){
+        return Result.success(orderService.orderUserPage(userOrderPageQuery));
     }
 
     /** 订单详情（明细按档聚合 + 票列表） */

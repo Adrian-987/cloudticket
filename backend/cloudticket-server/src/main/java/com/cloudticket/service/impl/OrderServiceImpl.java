@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.cloudticket.common.context.BaseContext;
 import com.cloudticket.common.exception.BaseException;
+import com.cloudticket.common.result.CursorPageResult;
 import com.cloudticket.common.result.PageResult;
 import com.cloudticket.mapper.*;
 import com.cloudticket.pojo.dto.*;
@@ -289,13 +290,29 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Orders> implement
     }
 
     @Override
-    public PageResult<UserOrderVO> orderUserPage(UserOrderPageQuery userOrderPageQuery) {
-        Page<UserOrderVO> page=new Page<>(userOrderPageQuery.getPageNum(), userOrderPageQuery.getPageSize());
-        orderMapper.selectUserOrderPage(page,BaseContext.getCurrentId(),userOrderPageQuery.getStatus());
-        page.getRecords().forEach(userOrderVO -> {
-            userOrderVO.setStatusDesc(OrderStatus.of(userOrderVO.getStatus()).getDesc());
-        });
-        return new PageResult<>((int)page.getTotal(),page.getRecords());
+    public CursorPageResult<UserOrderVO> orderUserPage(UserOrderPageQuery userOrderPageQuery) {
+        // 每页条数：默认 10，上限 50
+        int limit = (userOrderPageQuery.getLimit() == null || userOrderPageQuery.getLimit() <= 0)
+                ? 10 : Math.min(userOrderPageQuery.getLimit(), 50);
+
+        // 游标分页：多查 1 条用于判断"是否还有更多"
+        List<UserOrderVO> rows = orderMapper.selectUserOrderPage(
+                BaseContext.getCurrentId(), userOrderPageQuery.getStatus(),
+                userOrderPageQuery.getCursor(), limit + 1);
+
+        //如果有多查一条,说明还有后续数据,还需要后续游标
+        String nextCursor =null;
+        boolean hasMore = rows.size() > limit;
+        if (hasMore) {
+            rows = new ArrayList<>(rows.subList(0, limit));
+            nextCursor=String.valueOf(rows.get(rows.size() - 1).getOrderId());
+        }
+        rows.forEach(vo -> vo.setStatusDesc(OrderStatus.of(vo.getStatus()).getDesc()));
+        return CursorPageResult.<UserOrderVO>builder()
+                .rows(rows)
+                .nextCursor(nextCursor)
+                .hasMore(hasMore)
+                .build();
     }
 
     @Override

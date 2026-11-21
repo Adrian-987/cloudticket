@@ -21,7 +21,11 @@
         <if test="status != null">
             AND o.status = #{status}
         </if>
+        <if test="cursor != null">
+            AND o.id &lt; #{cursor}
+        </if>
         ORDER BY o.id DESC
+        LIMIT #{limit}
     </select>
 
     <!-- 订单详情主查询：订单 + 演出 + 场次（全一对一），归属校验 user_id -->
