@@ -24,6 +24,7 @@
         <knife4j.version>4.5.0</knife4j.version>
         <hutool.version>5.8.38</hutool.version>
         <jjwt.version>0.12.6</jjwt.version>
+        <redission.version>3.50.0</redission.version>
     </properties>
 
     <!-- 第三方依赖版本统一在父 pom 管理，子模块引用时不写版本号 -->
@@ -77,6 +78,12 @@
                 <groupId>cn.hutool</groupId>
                 <artifactId>hutool-all</artifactId>
                 <version>${hutool.version}</version>
+            </dependency>
+            <!-- 已有：springdoc 等 -->
+            <dependency>
+                <groupId>org.redisson</groupId>
+                <artifactId>redisson-spring-boot-starter</artifactId>
+                <version>${redission.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

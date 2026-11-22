@@ -10,6 +10,11 @@ spring:
     url: jdbc:mysql://${ck.datasource.host}:${ck.datasource.port}/${ck.datasource.database}?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true
     username: ${ck.datasource.username}
     password: ${ck.datasource.password}
+  data:
+    redis:
+      host: ${ck.redis.host}
+      port: ${ck.redis.port}
+      database: ${ck.redis.database}
 
 server:
   port: 8080
