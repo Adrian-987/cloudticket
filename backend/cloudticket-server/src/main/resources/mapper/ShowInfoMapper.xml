@@ -55,7 +55,7 @@
                 AND s.title LIKE CONCAT('%', #{q.keyword}, '%')
             </if>
         </where>
-        ORDER BY s.id DESC
+        ORDER BY s.sold_count DESC, s.id DESC
     </select>
     <!-- 用户端演出详情：演出 + 场馆（一对一嵌套）+ 价格区间 -->
     <resultMap id="UserShowDetailMap" type="com.cloudticket.pojo.vo.UserShowDetailVO">

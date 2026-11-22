@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.cloudticket.annotation.Audit;
 import com.cloudticket.common.constant.AuditConstant;
+import com.cloudticket.common.constant.CacheKey;
 import com.cloudticket.common.context.BaseContext;
 import com.cloudticket.common.exception.BaseException;
 import com.cloudticket.common.result.PageResult;
@@ -23,20 +24,28 @@ import com.cloudticket.pojo.enums.ShowStatus;
 import com.cloudticket.pojo.vo.*;
 import com.cloudticket.service.ShowService;
 import com.cloudticket.service.VenueService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> implements ShowService {
 
     @Autowired
     ShowInfoMapper showInfoMapper;
+
+    @Autowired
+    RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
     SessionMapper sessionMapper;
@@ -236,8 +245,51 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
 
     @Override
     public PageResult<UserShowVO> showUserPage(UserShowPageQuery userShowPageQuery) {
-        Page<UserShowVO> page = new Page<>(userShowPageQuery.getPageNum(), userShowPageQuery.getPageSize());
-        showInfoMapper.selectUserShowPage(page, userShowPageQuery);   // XML：状态/分类/城市/关键词 + 场馆 + 最低价
+        // ===== 缓存策略（按"可复用性"分层）=====
+        // ① 关键词搜索 = 无限组合/长尾 → 不缓存，直查 DB（P6 演进为 ES）
+        // ② 深页（pageNum > 50）= 长尾 → 不缓存
+        // ③ 其余（默认/城市/分类/翻页）= 有限组合、高频复用 → 结果缓存
+        if (StrUtil.isNotBlank(userShowPageQuery.getKeyword())
+                || (userShowPageQuery.getPageNum() != null && userShowPageQuery.getPageNum() > 50)) {
+            return queryUserShowFromDb(userShowPageQuery);
+        }
+
+        // 缓存 key：city:category:pageNum:pageSize（keyword 必为空，不占位）
+        String key = CacheKey.SHOW_LIST
+                + Objects.toString(userShowPageQuery.getCity(), "-") + ":"
+                + Objects.toString(userShowPageQuery.getCategory(), "-") + ":"
+                + userShowPageQuery.getPageNum() + ":"
+                + userShowPageQuery.getPageSize();
+
+        // 读缓存（Redis 异常降级直查 DB，缓存故障不拖垮业务）
+        try {
+            @SuppressWarnings("unchecked")
+            PageResult<UserShowVO> cached = (PageResult<UserShowVO>) redisTemplate.opsForValue().get(key);
+            if (cached != null) {
+                return cached;
+            }
+        } catch (Exception e) {
+            // 降级：读缓存失败直接走 DB
+            log.warn("读演出列表缓存失败，降级直查 DB，key={}", key, e);
+        }
+
+        PageResult<UserShowVO> result = queryUserShowFromDb(userShowPageQuery);
+
+        // 写缓存：TTL 30s + 随机抖动 0~30s（防雪崩）
+        try {
+            long ttl = 30 + ThreadLocalRandom.current().nextLong(30);
+            redisTemplate.opsForValue().set(key, result, ttl, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            // 降级：写缓存失败不影响返回
+            log.warn("写演出列表缓存失败，降级直查 DB，key={}", key, e);
+        }
+        return result;
+    }
+
+    /** 演出列表查库（状态/分类翻译）—— 缓存未命中、关键词搜索、深页共用 */
+    private PageResult<UserShowVO> queryUserShowFromDb(UserShowPageQuery query) {
+        Page<UserShowVO> page = new Page<>(query.getPageNum(), query.getPageSize());
+        showInfoMapper.selectUserShowPage(page, query);   // XML：状态/分类/城市/关键词 + 场馆 + 最低价
         List<UserShowVO> rows = page.getRecords().stream().map(vo -> {
             vo.setStatusDesc(ShowStatus.of(vo.getStatus()).getUserDesc());   // 用户端文案：即将开售/销售中
             vo.setCategoryDesc(ShowCategory.of(vo.getCategory()).getLabel());
