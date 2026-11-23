@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.cloudticket.annotation.Audit;
+import com.cloudticket.common.Cache.CacheData;
 import com.cloudticket.common.constant.AuditConstant;
 import com.cloudticket.common.constant.CacheKey;
 import com.cloudticket.common.context.BaseContext;
@@ -24,13 +25,20 @@ import com.cloudticket.pojo.enums.ShowStatus;
 import com.cloudticket.pojo.vo.*;
 import com.cloudticket.service.ShowService;
 import com.cloudticket.service.VenueService;
+import com.github.benmanes.caffeine.cache.Cache;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RBloomFilter;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.endpoint.Show;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
@@ -42,13 +50,23 @@ import java.util.stream.Collectors;
 public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> implements ShowService {
 
     @Autowired
+    RedissonClient redissonClient;
+
+    @Autowired
     ShowInfoMapper showInfoMapper;
 
     @Autowired
     RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
+    Cache<Long, UserShowDetailVO> userShowVOCache;
+
+    @Autowired
     SessionMapper sessionMapper;
+
+    @Autowired
+    @Resource(name = "showBloomFilter")
+    RBloomFilter rBloomFilter;
 
     @Autowired
     TicketCategoryMapper ticketCategoryMapper;
@@ -324,10 +342,67 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
 
     @Override
     public UserShowDetailVO showUserDetail(Long id) {
+        //查询本地缓存,有直接返回,没有执行方法(redis和数据库),并且写回本地缓存
+        return userShowVOCache.get(id, v-> loadFromRedisOrDb(id));
+
+    }
+
+    private UserShowDetailVO loadFromRedisOrDb(Long id){
+        String key=CacheKey.SHOW_DETAIL+id;
+        CacheData<UserShowDetailVO> data=new CacheData<>();
+        //查询redis数据
+        try {
+            data=(CacheData<UserShowDetailVO>) redisTemplate.opsForValue().get(key);
+        }catch (Exception e){
+            log.warn("读详情缓存失败，降级查库, id={}", id, e);
+        }
+        //redis不存在,自动降级查询数据库
+        if (data!=null){
+            //空值缓存值
+            if (data.getData()==null){
+                throw new BaseException("该演出不存在");
+            }
+            if(data.getExpireAt() == null||data.getExpireAt().isAfter(LocalDateTime.now())){
+                return data.getData();
+            }
+            //分布式锁
+            RLock lock=redissonClient.getLock(key+":lock");
+            //抢到重建,并且返回新值
+            if (lock.tryLock()){
+                try {
+                    return selectShowBySQL(id);
+                }catch (BaseException e) {
+                    throw e;                              // "不存在"照抛（业务正常）
+                } catch (Exception e) {
+                    log.warn("重建详情失败，降级返回旧值, id={}", id, e);
+                }  finally {
+                    lock.unlock();
+                }
+            }
+            //没抢到返回旧值
+            return data.getData();
+        }
+        //检查布隆过滤器是否存在
+        if (!rBloomFilter.contains(id)){
+            throw new BaseException("该演出不存在");
+        }
+        return selectShowBySQL(id);
+    }
+
+    private  UserShowDetailVO selectShowBySQL(Long id){
+        String key=CacheKey.SHOW_DETAIL+id;
         // ① 主查询：演出 + 场馆 + 价格区间（草稿/待审核/驳回不可见）
         UserShowDetailVO vo = showInfoMapper.selectUserDetail(id);
         if (vo == null) {
-            throw new BaseException("演出不存在");
+            //空值缓存
+            try {
+                redisTemplate.opsForValue().set(key,
+                        new CacheData<>(null, LocalDateTime.now().plusSeconds(60)),
+                        Duration.ofSeconds(60));
+            } catch (Exception e) {
+                log.warn("写空值缓存失败, id={}", id, e);
+            }
+            throw new BaseException("该演出不存在");
         }
         vo.setStatusDesc(ShowStatus.of(vo.getStatus()).getUserDesc());
         vo.setCategoryDesc(ShowCategory.of(vo.getCategory()).getLabel());
@@ -344,6 +419,14 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
             return sv;
         }).toList();
         vo.setSessions(list);
+        try {
+            //写入缓存
+            redisTemplate.opsForValue().set(key,
+                    new CacheData<>(vo, LocalDateTime.now().plusMinutes(30)),
+                    Duration.ofMinutes(60));
+        } catch (Exception e) {
+            log.warn("写详情缓存失败, id={}", id, e);
+        }
         return vo;
     }
 
