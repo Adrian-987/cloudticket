@@ -142,6 +142,13 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
         if (!success) {
             throw new BaseException("该演出不存在或已审核");
         }
+        // ① 审核通过 → 新演出必须进布隆（启动预热只加了"启动时已有的 id"）
+        if (showAuditDTO.getApproved()) {
+            rBloomFilter.add(id);
+        }
+
+        // ② 主动失效详情缓存（Redis + 本地）
+        evictDetailCache(id);
     }
 
     @Override
@@ -182,6 +189,7 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
         ticketCategoryMapper.delete(new LambdaQueryWrapper<TicketCategory>().eq(TicketCategory::getShowId, id));
         sessionMapper.delete(new LambdaQueryWrapper<ShowSession>().eq(ShowSession::getShowId, id));
 
+
         // 更新 show_info（只更新，不新增；status 保持不变）
         BeanUtils.copyProperties(showCreateDTO, show);   // title/category/coverUrl/detail/guide/venueId
         show.setTotalStock(getTotalStock(showCreateDTO));
@@ -189,6 +197,8 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
 
         // 重建子表（票档 + 场次 + 库存）
         insertShowStructure(id, showCreateDTO);
+        //删除redis和本地缓存,最后
+        evictDetailCache(show.getId());
     }
 
     @Override
@@ -252,6 +262,8 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
         if(!success){
             throw new BaseException("该演出不存在或当前状态不可下架");
         }
+
+        evictDetailCache(id);
     }
 
     @Override
@@ -304,17 +316,6 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
         return result;
     }
 
-    /** 演出列表查库（状态/分类翻译）—— 缓存未命中、关键词搜索、深页共用 */
-    private PageResult<UserShowVO> queryUserShowFromDb(UserShowPageQuery query) {
-        Page<UserShowVO> page = new Page<>(query.getPageNum(), query.getPageSize());
-        showInfoMapper.selectUserShowPage(page, query);   // XML：状态/分类/城市/关键词 + 场馆 + 最低价
-        List<UserShowVO> rows = page.getRecords().stream().map(vo -> {
-            vo.setStatusDesc(ShowStatus.of(vo.getStatus()).getUserDesc());   // 用户端文案：即将开售/销售中
-            vo.setCategoryDesc(ShowCategory.of(vo.getCategory()).getLabel());
-            return vo;
-        }).toList();
-        return new PageResult<>((int) page.getTotal(), rows);
-    }
 
     @Override
     public SessionStockVO showUserStock(Long sessionId) {
@@ -345,6 +346,28 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
         //查询本地缓存,有直接返回,没有执行方法(redis和数据库),并且写回本地缓存
         return userShowVOCache.get(id, v-> loadFromRedisOrDb(id));
 
+    }
+
+    //用于删除本地caffeine和redis缓存
+    private void evictDetailCache(Long showId) {
+        try {
+            redisTemplate.delete(CacheKey.SHOW_DETAIL + showId);
+        } catch (Exception e) {
+            log.warn("删详情缓存失败, id={}", showId, e);
+        }
+        userShowVOCache.invalidate(showId);
+    }
+
+    /** 演出列表查库（状态/分类翻译）—— 缓存未命中、关键词搜索、深页共用 */
+    private PageResult<UserShowVO> queryUserShowFromDb(UserShowPageQuery query) {
+        Page<UserShowVO> page = new Page<>(query.getPageNum(), query.getPageSize());
+        showInfoMapper.selectUserShowPage(page, query);   // XML：状态/分类/城市/关键词 + 场馆 + 最低价
+        List<UserShowVO> rows = page.getRecords().stream().map(vo -> {
+            vo.setStatusDesc(ShowStatus.of(vo.getStatus()).getUserDesc());   // 用户端文案：即将开售/销售中
+            vo.setCategoryDesc(ShowCategory.of(vo.getCategory()).getLabel());
+            return vo;
+        }).toList();
+        return new PageResult<>((int) page.getTotal(), rows);
     }
 
     private UserShowDetailVO loadFromRedisOrDb(Long id){
