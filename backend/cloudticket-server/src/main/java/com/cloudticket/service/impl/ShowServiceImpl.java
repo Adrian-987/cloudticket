@@ -319,6 +319,18 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
 
     @Override
     public SessionStockVO showUserStock(Long sessionId) {
+
+        String key=CacheKey.SESSION_STOCK+sessionId;
+        //优先读取缓存
+        try {
+            SessionStockVO sessionStockVO1 = (SessionStockVO)redisTemplate.opsForValue().get(key);
+            if (sessionStockVO1!=null){
+                return sessionStockVO1;
+            }
+        } catch (Exception e) {
+            log.warn("读余量缓存失败，降级查库, sessionId={}", sessionId, e);
+        }
+
         ShowSession session = sessionMapper.selectById(sessionId);
         if(session==null){
             throw new BaseException("该场次不存在");
@@ -338,6 +350,13 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
             });
         }
         sessionStockVO.setCategories(list);
+        
+        try {
+            long ttl=3L+ThreadLocalRandom.current().nextLong(2);
+            redisTemplate.opsForValue().set(key,sessionStockVO,ttl,TimeUnit.SECONDS);
+        }catch (Exception e){
+            log.warn("写余量缓存失败, sessionId={}", sessionId, e);
+        }
         return sessionStockVO;
     }
 
