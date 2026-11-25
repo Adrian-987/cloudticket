@@ -16,6 +16,20 @@ spring:
       port: ${ck.redis.port}
       database: ${ck.redis.database}
 
+logging:
+  pattern:
+    # 控制台格式：时间 级别 [traceId] [线程] 类名 - 消息
+    console: "%d{HH:mm:ss.SSS} %-5level [%X{traceId:-no-trace}] [%thread] %logger{36} - %msg%n"
+    # 文件格式：多一个日期（跨天排查方便）
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%X{traceId:-no-trace}] [%thread] %logger{50} - %msg%n"
+  file:
+    name: logs/cloudticket.log       # ← 落盘位置
+  logback:
+    rollingpolicy:
+      max-file-size: 50MB            # 单文件超 50MB 自动切
+      max-history: 7                 # 只留 7 天
+      total-size-cap: 500MB          # 总共最多占 500MB
+
 server:
   port: 8080
 
