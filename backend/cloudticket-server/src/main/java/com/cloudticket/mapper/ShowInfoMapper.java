@@ -5,13 +5,11 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.cloudticket.pojo.dto.UserShowPageQuery;
 import com.cloudticket.pojo.entity.ShowInfo;
-import com.cloudticket.pojo.vo.AdminShowVO;
-import com.cloudticket.pojo.vo.AdminShowDetailVO;
-import com.cloudticket.pojo.vo.MerchantShowDetailVO;
-import com.cloudticket.pojo.vo.UserShowDetailVO;
-import com.cloudticket.pojo.vo.UserShowVO;
+import com.cloudticket.pojo.vo.*;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 @Mapper
 public interface ShowInfoMapper extends BaseMapper<ShowInfo> {
@@ -33,4 +31,6 @@ public interface ShowInfoMapper extends BaseMapper<ShowInfo> {
 
     /** 开售流转④：所有场次都结束 → 已结束（4→5） */
     int endShow();
+
+    List<UserShowVO> selectUserShowsByIds(List<Long> ids);
 }

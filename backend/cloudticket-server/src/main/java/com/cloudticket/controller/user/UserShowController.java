@@ -3,10 +3,7 @@ package com.cloudticket.controller.user;
 import com.cloudticket.common.result.PageResult;
 import com.cloudticket.common.result.Result;
 import com.cloudticket.pojo.dto.UserShowPageQuery;
-import com.cloudticket.pojo.vo.CategoryVO;
-import com.cloudticket.pojo.vo.SessionStockVO;
-import com.cloudticket.pojo.vo.UserShowDetailVO;
-import com.cloudticket.pojo.vo.UserShowVO;
+import com.cloudticket.pojo.vo.*;
 import com.cloudticket.service.ShowService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -46,5 +43,11 @@ public class UserShowController {
     public Result<SessionStockVO> showUserStock(@PathVariable Long sessionId){
         SessionStockVO sessionStockVO=showService.showUserStock(sessionId);
         return Result.success(sessionStockVO);
+    }
+
+    @GetMapping("/shows/hot")
+    public Result<List<UserShowVO>> showHot(){
+        List<UserShowVO> showHotVO=showService.showHot();
+        return Result.success(showHotVO);
     }
 }

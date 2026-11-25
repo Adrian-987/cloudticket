@@ -40,4 +40,6 @@ public interface ShowService extends IService<ShowInfo> {
     PageResult<UserShowVO> showUserPage(UserShowPageQuery userShowPageQuery);
 
     SessionStockVO showUserStock(Long sessionId);
+
+    List<UserShowVO> showHot();
 }

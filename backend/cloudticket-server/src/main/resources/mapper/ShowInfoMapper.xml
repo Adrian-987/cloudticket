@@ -84,6 +84,24 @@
         LEFT JOIN venue v ON s.venue_id = v.id
         WHERE s.id = #{id} AND s.status NOT IN (0, 1, 2)
     </select>
+    <select id="selectUserShowsByIds" resultType="com.cloudticket.pojo.vo.UserShowVO">
+        SELECT s.id, s.title, s.category, s.cover_url, s.status,
+        v.name AS venueName, v.city,
+        (SELECT MIN(tc.price) FROM ticket_category tc WHERE tc.show_id = s.id) AS minPrice,
+        (SELECT MIN(ss.sale_start_time) FROM show_session ss
+          WHERE ss.show_id = s.id AND ss.sale_start_time > NOW()) AS saleStartTime
+        FROM show_info s
+        LEFT JOIN venue v ON s.venue_id = v.id
+        WHERE s.id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        AND s.status IN (3, 4)
+        ORDER BY FIELD(s.id,
+                <foreach collection="ids" item="id" separator=",">
+                    #{id}
+                </foreach>)
+    </select>
 
     <!-- ③ 有场次销售中 → 销售中（3 审核通过 → 4 销售中） -->
     <update id="startSale">

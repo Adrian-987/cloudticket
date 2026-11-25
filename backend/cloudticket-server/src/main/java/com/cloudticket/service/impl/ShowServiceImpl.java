@@ -39,7 +39,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
@@ -350,7 +352,7 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
             });
         }
         sessionStockVO.setCategories(list);
-        
+
         try {
             long ttl=3L+ThreadLocalRandom.current().nextLong(2);
             redisTemplate.opsForValue().set(key,sessionStockVO,ttl,TimeUnit.SECONDS);
@@ -360,8 +362,57 @@ public class ShowServiceImpl extends ServiceImpl<ShowInfoMapper, ShowInfo> imple
         return sessionStockVO;
     }
 
+    // 热榜：ZSet 滑动窗口（近 7 天合并）
+    @Override
+    public List<UserShowVO> showHot() {
+        // ① 近 7 天的 key（今天 + 前 6 天）
+        List<String> keys = new ArrayList<>();
+        for (int i = 0; i < 7; i++) {
+            keys.add(CacheKey.SHOW_HOT
+                    + LocalDate.now().minusDays(i).format(DateTimeFormatter.BASIC_ISO_DATE));
+        }
+
+        // 临时 key：每次请求独立（并发互不干扰），用完即删
+        String tempKey = CacheKey.SHOW_HOT + "temp:" + UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        try {
+            // ② ZUNIONSTORE：合并 7 天分数（同一 member 的 score 相加）→ 结果放临时 key
+            redisTemplate.opsForZSet().unionAndStore(keys.get(0), keys.subList(1, keys.size()), tempKey);
+
+            // ③ 取 Top10（此时分数 = 近 7 天累计热度）
+            Set<Object> top = redisTemplate.opsForZSet().reverseRange(tempKey, 0, 9);
+            if (top == null || top.isEmpty()) {
+                return List.of();
+            }
+            List<Long> ids = top.stream()
+                    .map(o -> Long.parseLong(o.toString()))
+                    .toList();
+            List<UserShowVO> list = showInfoMapper.selectUserShowsByIds(ids);
+            list.forEach(vo -> {
+                vo.setStatusDesc(ShowStatus.of(vo.getStatus()).getUserDesc());
+                vo.setCategoryDesc(ShowCategory.of(vo.getCategory()).getLabel());
+            });
+            return list;
+        } catch (Exception e) {
+            log.warn("查热榜失败，返回空", e);
+            return List.of();
+        } finally {
+            // ④ 临时 key 用完即删（防泄漏）
+            try {
+                redisTemplate.delete(tempKey);
+            } catch (Exception ignored) {
+            }
+        }
+    }
+
     @Override
     public UserShowDetailVO showUserDetail(Long id) {
+        String key=CacheKey.SHOW_HOT+LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        try {
+            redisTemplate.opsForZSet().incrementScore(key,id,1);
+            redisTemplate.expire(key, 7, TimeUnit.DAYS);
+        }catch (Exception e){
+            log.warn("写入id为:{}热点ZSET失败",id,e);
+        }
         //查询本地缓存,有直接返回,没有执行方法(redis和数据库),并且写回本地缓存
         return userShowVOCache.get(id, v-> loadFromRedisOrDb(id));
 
