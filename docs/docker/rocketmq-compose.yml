@@ -1,0 +1,43 @@
+# RocketMQ 5.3.1 单机（NameServer + Broker）
+# 用法：
+#   cd docs/docker
+#   docker compose -f rocketmq-compose.yml up -d       # 启动
+#   docker compose -f rocketmq-compose.yml down        # 停止并删除容器（镜像保留）
+#   docker compose -f rocketmq-compose.yml logs -f     # 看日志
+#
+# 注意：brokerIP1 必须是【宿主机可达 IP】（换 WiFi 后要改这里并重启）
+name: cloudticket-mq
+
+services:
+  namesrv:
+    image: apache/rocketmq:5.3.1
+    container_name: rmqnamesrv
+    command: sh mqnamesrv
+    ports:
+      - "9876:9876"
+    environment:
+      JAVA_OPT_EXT: "-Xms256m -Xmx256m -Xmn128m"
+    networks:
+      - rmq-net
+
+  broker:
+    image: apache/rocketmq:5.3.1
+    container_name: rmqbroker
+    depends_on:
+      - namesrv
+    ports:
+      - "10911:10911"
+      - "10909:10909"
+    environment:
+      NAMESRV_ADDR: "namesrv:9876"
+      JAVA_OPT_EXT: "-Xms512m -Xmx512m -Xmn256m"
+    command: >
+      sh -c 'sed -i "/^brokerIP1/d" /home/rocketmq/rocketmq-5.3.1/conf/broker.conf;
+             echo "brokerIP1=10.120.10.204" >> /home/rocketmq/rocketmq-5.3.1/conf/broker.conf;
+             sh /home/rocketmq/rocketmq-5.3.1/bin/mqbroker -n namesrv:9876 -c /home/rocketmq/rocketmq-5.3.1/conf/broker.conf'
+    networks:
+      - rmq-net
+
+networks:
+  rmq-net:
+    external: true
