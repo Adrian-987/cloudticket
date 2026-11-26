@@ -15,6 +15,10 @@ spring:
       host: ${ck.redis.host}
       port: ${ck.redis.port}
       database: ${ck.redis.database}
+  threads:
+    virtual:
+      enabled: true
+
 
 logging:
   pattern:
